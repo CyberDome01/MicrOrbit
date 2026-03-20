@@ -1,0 +1,3280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="application-name" content="AU-ARS">
+<meta name="description" content="AU-ARS · Action Request System - Government of Alberta">
+<title>AU-ARS · Action Request System</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* fonts loaded via <link> tags in <head> */
+
+/* ══════════════════════════════════════════════
+   DESIGN TOKENS — 7 THEMES
+══════════════════════════════════════════════ */
+:root { --trans: all 0.18s ease; --r: 10px; --r-sm: 6px; --r-lg: 14px; }
+
+[data-theme="corporate"] {
+  --bg:#f0f4f8; --bg2:#ffffff; --bg3:#e8edf3; --surface:#ffffff; --s2:#f5f8fb; --s3:#edf1f5;
+  --border:#d0d9e4; --b2:#e2e8f0;
+  --text:#0f1923; --t2:#3d5166; --t3:#7a8fa3; --t4:#b0bfcc;
+  --primary:#1559a8; --pri-bg:rgba(21,89,168,.08); --pri-b:rgba(21,89,168,.2);
+  --success:#0d7a3e; --suc-bg:rgba(13,122,62,.08); --suc-b:rgba(13,122,62,.2);
+  --warn:#b45309; --war-bg:rgba(180,83,9,.08); --war-b:rgba(180,83,9,.2);
+  --danger:#b91c1c; --dan-bg:rgba(185,28,28,.08); --dan-b:rgba(185,28,28,.2);
+  --pastdue:#7c2d12; --pas-bg:rgba(124,45,18,.08); --pas-b:rgba(124,45,18,.25);
+  --purple:#5b21b6; --pur-bg:rgba(91,33,182,.08);
+  --shadow:0 1px 3px rgba(0,0,0,.07),0 4px 12px rgba(0,0,0,.05);
+  --shadow-md:0 4px 16px rgba(0,0,0,.1);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.15);
+  --header-bg:linear-gradient(135deg,#0d3670 0%,#1559a8 100%);
+  --header-text:#ffffff;
+}
+[data-theme="dark"] {
+  --bg:#0c0f14; --bg2:#131820; --bg3:#181e28; --surface:#1a2130; --s2:#1e2738; --s3:#222d3e;
+  --border:#2a3548; --b2:#1e2a3a;
+  --text:#e2eaf5; --t2:#8da4bc; --t3:#4f6480; --t4:#2d3f55;
+  --primary:#3d8ef5; --pri-bg:rgba(61,142,245,.1); --pri-b:rgba(61,142,245,.25);
+  --success:#22c55e; --suc-bg:rgba(34,197,94,.1); --suc-b:rgba(34,197,94,.2);
+  --warn:#f59e0b; --war-bg:rgba(245,158,11,.1); --war-b:rgba(245,158,11,.2);
+  --danger:#ef4444; --dan-bg:rgba(239,68,68,.1); --dan-b:rgba(239,68,68,.2);
+  --pastdue:#f97316; --pas-bg:rgba(249,115,22,.1); --pas-b:rgba(249,115,22,.25);
+  --purple:#a78bfa; --pur-bg:rgba(167,139,250,.1);
+  --shadow:0 2px 8px rgba(0,0,0,.25),0 4px 20px rgba(0,0,0,.2);
+  --shadow-md:0 6px 24px rgba(0,0,0,.35);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.5);
+  --header-bg:linear-gradient(135deg,#0c1829 0%,#1a2d4a 100%);
+  --header-text:#e2eaf5;
+}
+[data-theme="blue"] {
+  --bg:#060e1e; --bg2:#0a1628; --bg3:#0f1e35; --surface:#112040; --s2:#162848; --s3:#1a3055;
+  --border:#1d3560; --b2:#122040;
+  --text:#dde8ff; --t2:#6e92cc; --t3:#334d80; --t4:#1a2e55;
+  --primary:#4da3ff; --pri-bg:rgba(77,163,255,.12); --pri-b:rgba(77,163,255,.3);
+  --success:#00d68f; --suc-bg:rgba(0,214,143,.1); --suc-b:rgba(0,214,143,.2);
+  --warn:#ffcc00; --war-bg:rgba(255,204,0,.1); --war-b:rgba(255,204,0,.2);
+  --danger:#ff4d6a; --dan-bg:rgba(255,77,106,.1); --dan-b:rgba(255,77,106,.2);
+  --pastdue:#ff7043; --pas-bg:rgba(255,112,67,.1); --pas-b:rgba(255,112,67,.25);
+  --purple:#b39dff; --pur-bg:rgba(179,157,255,.1);
+  --shadow:0 2px 8px rgba(0,0,0,.3),0 6px 24px rgba(0,0,0,.25);
+  --shadow-md:0 6px 28px rgba(0,0,0,.4);
+  --shadow-lg:0 14px 48px rgba(0,0,0,.55);
+  --header-bg:linear-gradient(135deg,#050d1a 0%,#0d2040 100%);
+  --header-text:#dde8ff;
+}
+[data-theme="emerald"] {
+  --bg:#061209; --bg2:#0a1a0e; --bg3:#0d2012; --surface:#102616; --s2:#143018; --s3:#183a1c;
+  --border:#1e4a24; --b2:#102015;
+  --text:#d8f5e0; --t2:#5daa6e; --t3:#2a6035; --t4:#163a1e;
+  --primary:#2ed47a; --pri-bg:rgba(46,212,122,.1); --pri-b:rgba(46,212,122,.3);
+  --success:#2ed47a; --suc-bg:rgba(46,212,122,.1); --suc-b:rgba(46,212,122,.2);
+  --warn:#f0a500; --war-bg:rgba(240,165,0,.1); --war-b:rgba(240,165,0,.2);
+  --danger:#f05060; --dan-bg:rgba(240,80,96,.1); --dan-b:rgba(240,80,96,.2);
+  --pastdue:#ff7843; --pas-bg:rgba(255,120,67,.1); --pas-b:rgba(255,120,67,.25);
+  --purple:#9b7aff; --pur-bg:rgba(155,122,255,.1);
+  --shadow:0 2px 8px rgba(0,0,0,.3); --shadow-md:0 6px 28px rgba(0,0,0,.4); --shadow-lg:0 14px 48px rgba(0,0,0,.55);
+  --header-bg:linear-gradient(135deg,#041008 0%,#0d2214 100%);
+  --header-text:#d8f5e0;
+}
+[data-theme="slate"] {
+  --bg:#f8f9fa; --bg2:#ffffff; --bg3:#f1f3f5; --surface:#ffffff; --s2:#f8f9fa; --s3:#f1f3f5;
+  --border:#dee2e8; --b2:#e9ecef;
+  --text:#212529; --t2:#495057; --t3:#868e96; --t4:#ced4da;
+  --primary:#495057; --pri-bg:rgba(73,80,87,.07); --pri-b:rgba(73,80,87,.2);
+  --success:#087f5b; --suc-bg:rgba(8,127,91,.07); --suc-b:rgba(8,127,91,.2);
+  --warn:#e67700; --war-bg:rgba(230,119,0,.07); --war-b:rgba(230,119,0,.2);
+  --danger:#c92a2a; --dan-bg:rgba(201,42,42,.07); --dan-b:rgba(201,42,42,.2);
+  --pastdue:#a61e4d; --pas-bg:rgba(166,30,77,.07); --pas-b:rgba(166,30,77,.25);
+  --purple:#5f3dc4; --pur-bg:rgba(95,61,196,.07);
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.05); --shadow-md:0 4px 16px rgba(0,0,0,.08); --shadow-lg:0 8px 32px rgba(0,0,0,.12);
+  --header-bg:linear-gradient(135deg,#343a40 0%,#495057 100%);
+  --header-text:#ffffff;
+}
+[data-theme="purple"] {
+  --bg:#0d0816; --bg2:#130d24; --bg3:#1a1030; --surface:#1e1438; --s2:#251944; --s3:#2c1e50;
+  --border:#3a2866; --b2:#1e1438;
+  --text:#ede5ff; --t2:#9d82e0; --t3:#4d3888; --t4:#2d1e55;
+  --primary:#a67cff; --pri-bg:rgba(166,124,255,.1); --pri-b:rgba(166,124,255,.3);
+  --success:#4ade80; --suc-bg:rgba(74,222,128,.1); --suc-b:rgba(74,222,128,.2);
+  --warn:#fbbf24; --war-bg:rgba(251,191,36,.1); --war-b:rgba(251,191,36,.2);
+  --danger:#fb7185; --dan-bg:rgba(251,113,133,.1); --dan-b:rgba(251,113,133,.2);
+  --pastdue:#f97316; --pas-bg:rgba(249,115,22,.1); --pas-b:rgba(249,115,22,.25);
+  --purple:#a67cff; --pur-bg:rgba(166,124,255,.1);
+  --shadow:0 2px 8px rgba(0,0,0,.35); --shadow-md:0 6px 28px rgba(0,0,0,.45); --shadow-lg:0 14px 48px rgba(0,0,0,.6);
+  --header-bg:linear-gradient(135deg,#0a0518 0%,#1a0e38 100%);
+  --header-text:#ede5ff;
+}
+[data-theme="contrast"] {
+  --bg:#000000; --bg2:#0a0a0a; --bg3:#111111; --surface:#111111; --s2:#181818; --s3:#202020;
+  --border:#404040; --b2:#282828;
+  --text:#ffffff; --t2:#d0d0d0; --t3:#808080; --t4:#404040;
+  --primary:#00e5ff; --pri-bg:rgba(0,229,255,.1); --pri-b:rgba(0,229,255,.4);
+  --success:#00ff88; --suc-bg:rgba(0,255,136,.1); --suc-b:rgba(0,255,136,.3);
+  --warn:#ffee00; --war-bg:rgba(255,238,0,.1); --war-b:rgba(255,238,0,.3);
+  --danger:#ff3333; --dan-bg:rgba(255,51,51,.1); --dan-b:rgba(255,51,51,.3);
+  --pastdue:#ff8c00; --pas-bg:rgba(255,140,0,.1); --pas-b:rgba(255,140,0,.35);
+  --purple:#cc88ff; --pur-bg:rgba(204,136,255,.1);
+  --shadow:0 0 0 1px #333; --shadow-md:0 0 0 1px #444; --shadow-lg:0 0 0 2px #555;
+  --header-bg:linear-gradient(135deg,#000 0%,#1a1a1a 100%);
+  --header-text:#ffffff;
+}
+
+/* ══════════════════════════════════════════════
+   RESET & BASE
+══════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:13px;scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .2s,color .2s}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--primary)}
+a{color:var(--primary);text-decoration:none}
+button{font-family:'IBM Plex Sans',sans-serif;cursor:pointer}
+
+/* ══════════════════════════════════════════════
+   PRINT STYLES
+══════════════════════════════════════════════ */
+@media print{
+  .app-header,.tab-nav,.toolbar,.row-acts,.no-print{display:none!important}
+  .tab-content{display:block!important}
+  body{background:#fff;color:#000;font-size:11px}
+  .surface,table{box-shadow:none;border:1px solid #ccc}
+}
+
+/* ══════════════════════════════════════════════
+   HEADER
+══════════════════════════════════════════════ */
+.app-header{
+  background:var(--header-bg);
+  color:var(--header-text);
+  padding:0 24px;
+  height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:300;
+  box-shadow:var(--shadow-md);
+}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{
+  width:32px;height:32px;
+  background:rgba(255,255,255,.15);
+  border:1px solid rgba(255,255,255,.25);
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'IBM Plex Mono',monospace;
+  font-weight:600;font-size:11px;
+  color:#fff;
+  flex-shrink:0;
+}
+.brand-text{font-size:15px;font-weight:700;color:rgba(255,255,255,.95);letter-spacing:.02em}
+.brand-text em{font-style:normal;opacity:.7}
+.brand-sub{font-size:9px;font-family:'IBM Plex Mono',monospace;opacity:.55;letter-spacing:.07em;text-transform:uppercase}
+.header-right{display:flex;align-items:center;gap:8px}
+#clock-display{font-family:'IBM Plex Mono',monospace;font-size:11px;opacity:.65}
+.sync-pill{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;
+  padding:4px 12px;border-radius:20px;cursor:pointer;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+  color:rgba(255,255,255,.88);
+  display:flex;align-items:center;gap:7px;
+  transition:background .2s;user-select:none;
+}
+.sync-pill:hover{background:rgba(255,255,255,.2)}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0;transition:background .3s}
+.sync-dot.syncing{background:#f59e0b;animation:blink 0.8s infinite}
+.sync-dot.offline{background:#ef4444;animation:none}
+.sync-dot.live{background:#22c55e;animation:blink 3s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* Theme btn */
+.theme-pill{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 11px;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);
+  border-radius:6px;color:rgba(255,255,255,.85);
+  font-size:11px;font-weight:500;
+  transition:var(--trans);cursor:pointer;
+}
+.theme-pill:hover{background:rgba(255,255,255,.18)}
+.theme-dd{
+  position:absolute;right:0;top:calc(100% + 8px);
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);box-shadow:var(--shadow-lg);
+  width:188px;display:none;z-index:500;overflow:hidden;
+}
+.theme-dd.open{display:block}
+.theme-item{
+  display:flex;align-items:center;gap:9px;
+  padding:9px 13px;cursor:pointer;font-size:12px;
+  transition:background .15s;
+}
+.theme-item:hover{background:var(--s2)}
+.theme-item.active{color:var(--primary);font-weight:600}
+.t-swatch{width:13px;height:13px;border-radius:50%;flex-shrink:0}
+.theme-wrap{position:relative}
+
+/* ══════════════════════════════════════════════
+   TAB NAV
+══════════════════════════════════════════════ */
+.tab-nav{
+  background:var(--bg2);border-bottom:2px solid var(--border);
+  padding:0 24px;display:flex;align-items:flex-end;gap:2px;
+  overflow-x:auto;position:sticky;top:56px;z-index:200;
+}
+.tab-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:10px 16px;border:none;background:none;cursor:pointer;
+  font-family:'IBM Plex Sans',sans-serif;
+  font-size:12px;font-weight:500;color:var(--t3);
+  border-bottom:2px solid transparent;margin-bottom:-2px;
+  transition:var(--trans);white-space:nowrap;
+}
+.tab-btn:hover{color:var(--t2)}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:600}
+.tab-num{
+  background:var(--dan-bg);color:var(--danger);
+  border-radius:10px;padding:1px 6px;
+  font-size:10px;font-weight:700;font-family:'IBM Plex Mono',monospace;
+  display:none;
+}
+.tab-num.has-data{display:inline}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* ══════════════════════════════════════════════
+   ALERT BANNER
+══════════════════════════════════════════════ */
+.alert-banner{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 20px;
+  font-size:12px;font-weight:500;
+  cursor:pointer;transition:opacity .2s;
+}
+.alert-banner.critical{background:linear-gradient(90deg,var(--dan-bg),transparent);border-bottom:1px solid var(--dan-b);color:var(--danger)}
+.alert-banner.warn{background:linear-gradient(90deg,var(--war-bg),transparent);border-bottom:1px solid var(--war-b);color:var(--warn)}
+.alert-banner.ok{background:linear-gradient(90deg,var(--suc-bg),transparent);border-bottom:1px solid var(--suc-b);color:var(--success);display:flex}
+.alert-banner:hover{opacity:.85}
+.alert-icon{font-size:14px}
+.alert-dismiss{margin-left:auto;font-size:11px;opacity:.6;padding:2px 6px;background:none;border:none;color:inherit;cursor:pointer}
+
+/* ══════════════════════════════════════════════
+   PAGE LAYOUT
+══════════════════════════════════════════════ */
+.page{padding:20px 24px;max-width:1800px;margin:0 auto}
+.page-title{
+  font-size:17px;font-weight:700;color:var(--text);
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:18px;
+}
+.page-title-sub{font-size:12px;font-weight:400;color:var(--t3);margin-left:4px}
+
+/* ══════════════════════════════════════════════
+   SECTION HEADERS
+══════════════════════════════════════════════ */
+.sec-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:12px;padding-bottom:8px;
+  border-bottom:1px solid var(--border);
+}
+.sec-title{
+  font-size:11px;font-weight:600;color:var(--t3);
+  text-transform:uppercase;letter-spacing:.08em;
+  display:flex;align-items:center;gap:7px;
+}
+.sec-title::before{content:'';width:3px;height:12px;background:var(--primary);border-radius:2px;display:block}
+
+/* ══════════════════════════════════════════════
+   KPI CARDS — COMPACT ROW
+══════════════════════════════════════════════ */
+.kpi-row{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin-bottom:18px;
+}
+@media(max-width:900px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:500px){.kpi-row{grid-template-columns:1fr 1fr}}
+
+.kpi{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:14px 16px;
+  position:relative;overflow:hidden;
+  box-shadow:var(--shadow);
+  transition:transform .18s,box-shadow .18s;
+  cursor:default;
+}
+.kpi:hover{transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--kc,var(--primary));border-radius:3px 0 0 3px}
+.kpi-label{font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
+.kpi-main{display:flex;align-items:flex-end;gap:8px;margin-bottom:3px}
+.kpi-num{font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:700;line-height:1;color:var(--text)}
+.kpi-delta{font-size:10px;font-family:'IBM Plex Mono',monospace;padding:1px 5px;border-radius:3px;margin-bottom:2px}
+.kpi-sub{font-size:10px;color:var(--t3)}
+.kpi-icon{position:absolute;right:12px;top:12px;font-size:18px;opacity:.12}
+
+/* Clickable KPI */
+.kpi-clickable{cursor:pointer;user-select:none}
+.kpi-clickable:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.kpi-clickable.active-kpi{box-shadow:0 0 0 2px var(--kc,var(--primary)),var(--shadow-md)}
+.kpi-click-hint{font-family:'IBM Plex Mono',monospace;font-size:9px;opacity:0;color:var(--t3);transition:opacity .15s;margin-left:6px;align-self:flex-end;margin-bottom:3px}
+.kpi-clickable:hover .kpi-click-hint,.kpi-clickable.active-kpi .kpi-click-hint{opacity:1}
+
+/* KPI Expand Panel */
+.kpi-panel{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow-md);
+  animation:panelIn .2s ease;
+}
+@keyframes panelIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.kpi-panel-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;background:var(--s2);border-bottom:1px solid var(--border);
+}
+.kpi-panel-title{font-size:12px;font-weight:700;color:var(--text)}
+.kpi-panel-close{background:none;border:none;color:var(--t3);cursor:pointer;font-size:15px;padding:0 4px;transition:color .15s}
+.kpi-panel-close:hover{color:var(--danger)}
+.kpi-panel-list{max-height:320px;overflow-y:auto}
+.kpi-panel-item{
+  display:grid;grid-template-columns:52px 1fr 110px 90px 80px;
+  align-items:center;gap:8px;
+  padding:9px 14px;border-bottom:1px solid var(--b2);
+  transition:background .12s;font-size:12px;
+}
+.kpi-panel-item:hover{background:var(--pri-bg)}
+.kpi-panel-item:last-child{border-bottom:none}
+.kpi-panel-empty{padding:28px;text-align:center;color:var(--t3);font-size:12px}
+.kp-ar{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;color:var(--primary)}
+.kp-subj{color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kp-owner{color:var(--t3);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kp-due{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--t3)}
+
+.kpi.k-primary{--kc:var(--primary)}
+.kpi.k-success{--kc:var(--success)} .kpi.k-success .kpi-num{color:var(--success)}
+.kpi.k-warn{--kc:var(--warn)} .kpi.k-warn .kpi-num{color:var(--warn)}
+.kpi.k-danger{--kc:var(--danger)} .kpi.k-danger .kpi-num{color:var(--danger)}
+.kpi.k-pastdue{--kc:var(--pastdue)} .kpi.k-pastdue .kpi-num{color:var(--pastdue)}
+.kpi.k-purple{--kc:var(--purple)} .kpi.k-purple .kpi-num{color:var(--purple)}
+/* Review tab KPI cards */
+.kpi.k-ed{--kc:#0891b2} .kpi.k-ed .kpi-num{color:#0891b2}
+.kpi.k-ed{border-top:3px solid #0891b2}
+.kpi.k-dir{--kc:#7c3aed} .kpi.k-dir .kpi-num{color:#7c3aed}
+.kpi.k-dir{border-top:3px solid #7c3aed}
+.kpi.k-mgr{--kc:#b45309} .kpi.k-mgr .kpi-num{color:#b45309}
+.kpi.k-mgr{border-top:3px solid #b45309}
+/* Review row label */
+.review-row-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--t3);margin:4px 0 6px;display:flex;align-items:center;gap:8px}
+.review-row-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ══════════════════════════════════════════════
+   DASHBOARD LAYOUT — 2-COLUMN
+══════════════════════════════════════════════ */
+.dash-grid{
+  display:grid;
+  grid-template-columns:1fr 340px;
+  gap:16px;
+  align-items:start;
+}
+@media(max-width:1100px){.dash-grid{grid-template-columns:1fr}}
+
+/* ══════════════════════════════════════════════
+   PRIORITY QUEUE (ACTION REQUIRED)
+══════════════════════════════════════════════ */
+.priority-list{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);overflow:hidden;
+  box-shadow:var(--shadow);
+  margin-bottom:16px;
+}
+.pl-header{
+  padding:10px 14px;
+  background:var(--s2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.pl-title{font-size:12px;font-weight:600;color:var(--text)}
+.pl-count{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--t3)}
+.pl-empty{padding:24px;text-align:center;color:var(--t3);font-size:12px}
+.pl-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 14px;border-bottom:1px solid var(--b2);
+  transition:background .15s;
+}
+.pl-item:last-child{border-bottom:none}
+.pl-item:hover{background:var(--s2)}
+.pl-ar{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--primary);font-weight:600;min-width:42px}
+.pl-subj{flex:1;font-size:11px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl-owner{font-size:10px;color:var(--t3);min-width:80px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl-aging{min-width:60px;text-align:right}
+
+/* ══════════════════════════════════════════════
+   RIGHT SIDEBAR — CHARTS
+══════════════════════════════════════════════ */
+.sidebar-panel{
+  display:flex;flex-direction:column;gap:12px;
+}
+.chart-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:14px;
+  box-shadow:var(--shadow);
+}
+.cc-title{font-size:11px;font-weight:600;color:var(--t2);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.cc-tag{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--t3);background:var(--s2);padding:2px 6px;border-radius:3px}
+.chart-wrap{position:relative}
+
+/* Aging mini summary */
+.aging-mini{display:flex;flex-direction:column;gap:5px}
+.am-row{display:flex;align-items:center;gap:8px;font-size:11px}
+.am-label{min-width:90px;color:var(--t2);font-size:10px}
+.am-bar-bg{flex:1;background:var(--s2);border-radius:3px;height:6px;overflow:hidden}
+.am-bar{height:100%;border-radius:3px;transition:width .6s ease}
+.am-num{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;min-width:18px;text-align:right}
+
+/* Owner workload */
+.workload-list{display:flex;flex-direction:column;gap:6px}
+.wl-row{font-size:11px;display:flex;align-items:center;gap:8px}
+.wl-name{flex:1;color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}
+.wl-bar-bg{flex:1.5;background:var(--s2);border-radius:3px;height:5px;overflow:hidden}
+.wl-bar{height:100%;border-radius:3px;background:var(--primary);opacity:.7}
+.wl-num{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--t3);min-width:16px;text-align:right}
+.wl-od{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--danger);min-width:16px;text-align:right}
+
+/* ══════════════════════════════════════════════
+   FULL AR TABLE SECTION
+══════════════════════════════════════════════ */
+.table-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);overflow:hidden;
+  box-shadow:var(--shadow);
+  margin-bottom:16px;
+}
+.tc-header{
+  padding:10px 14px;background:var(--s2);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
+}
+.tc-title{font-size:12px;font-weight:600;color:var(--text)}
+.tc-meta{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--t3)}
+.tc-scroll{overflow-x:auto;max-height:580px;overflow-y:auto}
+
+table.ar-t{width:100%;border-collapse:collapse;font-size:12px}
+table.ar-t thead{position:sticky;top:0;z-index:10;background:var(--bg3)}
+table.ar-t thead th{
+  padding:8px 11px;text-align:left;
+  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--t3);border-bottom:1px solid var(--border);
+  cursor:pointer;user-select:none;white-space:nowrap;
+  transition:color .15s;
+}
+table.ar-t thead th:hover{color:var(--primary)}
+table.ar-t thead th.sorted{color:var(--primary)}
+table.ar-t tbody tr{border-bottom:1px solid var(--b2);transition:background .12s}
+table.ar-t tbody tr:hover{background:var(--pri-bg)}
+table.ar-t tbody tr.row-pastdue{background:rgba(124,45,18,.04)}
+table.ar-t tbody tr.row-critical{background:rgba(185,28,28,.04)}
+table.ar-t tbody td{padding:8px 11px;vertical-align:middle;color:var(--t2)}
+.c-ar{font-family:'IBM Plex Mono',monospace;color:var(--primary);font-weight:600;font-size:11px;white-space:nowrap}
+.c-subj{max-width:300px;color:var(--text);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c-ellip{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Editable */
+.ed{cursor:pointer;border-radius:4px;padding:2px 4px;transition:background .12s;display:inline-block}
+.ed:hover{background:var(--s2)}
+.ed-inp,.ed-sel{
+  background:var(--s2);border:1px solid var(--primary);
+  border-radius:4px;padding:3px 7px;
+  font-family:'IBM Plex Sans',sans-serif;font-size:11px;color:var(--text);outline:none;
+  width:auto;min-width:110px;
+}
+input[type=date].ed-inp{color-scheme:inherit;min-width:130px}
+
+/* Status & aging badges */
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 8px;border-radius:4px;
+  font-size:10px;font-weight:600;letter-spacing:.02em;
+  white-space:nowrap;cursor:pointer;
+}
+.b-active{background:var(--suc-bg);color:var(--success);border:1px solid var(--suc-b)}
+.b-hold{background:var(--pur-bg);color:var(--purple);border:1px solid rgba(91,33,182,.2)}
+.b-pastdue{background:var(--pas-bg);color:var(--pastdue);border:1px solid var(--pas-b);font-weight:700}
+.b-completed{background:var(--pri-bg);color:var(--primary);border:1px solid var(--pri-b)}
+.b-cancelled{background:var(--s2);color:var(--t3);border:1px solid var(--border)}
+
+.ap{display:inline-block;padding:2px 7px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;white-space:nowrap}
+.ap-future{background:var(--pri-bg);color:var(--primary)}
+.ap-today{background:var(--war-bg);color:var(--warn);animation:ap-pulse 2s infinite}
+.ap-1-3{background:rgba(251,113,133,.1);color:#f87171}
+.ap-4-7{background:var(--dan-bg);color:var(--danger)}
+.ap-8-15{background:rgba(185,28,28,.15);color:#dc2626}
+.ap-16-30{background:rgba(153,22,10,.18);color:#b91c1c}
+.ap-30p{background:rgba(124,45,18,.22);color:#92400e;font-weight:700}
+.ap-hold{background:var(--pur-bg);color:var(--purple)}
+.ap-pastdue{background:var(--pas-bg);color:var(--pastdue);font-weight:700}
+@keyframes ap-pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+/* Row actions */
+.row-acts{display:flex;gap:3px;opacity:0;transition:opacity .12s}
+table.ar-t tbody tr:hover .row-acts{opacity:1}
+
+/* ══════════════════════════════════════════════
+   TOOLBAR
+══════════════════════════════════════════════ */
+.toolbar{
+  display:flex;align-items:center;gap:7px;flex-wrap:wrap;
+  margin-bottom:12px;
+}
+.srch-wrap{position:relative;flex:1;min-width:180px}
+.srch-wrap::before{content:'⌕';position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:14px;pointer-events:none}
+.srch{
+  width:100%;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:7px 10px 7px 28px;
+  font-family:'IBM Plex Sans',sans-serif;font-size:12px;color:var(--text);outline:none;
+  transition:var(--trans);
+}
+.srch:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--pri-bg)}
+.fsel{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:7px 10px;
+  font-family:'IBM Plex Sans',sans-serif;font-size:12px;color:var(--text);outline:none;
+  cursor:pointer;transition:var(--trans);
+}
+.fsel:focus{border-color:var(--primary)}
+
+.btn{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:7px 14px;border:none;border-radius:var(--r-sm);
+  font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;
+  cursor:pointer;transition:var(--trans);white-space:nowrap;
+}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-outline{background:transparent;color:var(--primary);border:1px solid var(--pri-b)}
+.btn-outline:hover{background:var(--pri-bg)}
+.btn-success{background:var(--suc-bg);color:var(--success);border:1px solid var(--suc-b)}
+.btn-danger{background:var(--dan-bg);color:var(--danger);border:1px solid var(--dan-b)}
+.btn-ghost{background:var(--s2);color:var(--t2);border:1px solid var(--border);padding:6px 10px;font-size:11px}
+.btn-ghost:hover{border-color:var(--primary);color:var(--primary)}
+.btn-sm{padding:5px 10px;font-size:11px}
+.btn-xs{padding:3px 7px;font-size:10px}
+
+/* ══════════════════════════════════════════════
+   PAGINATION
+══════════════════════════════════════════════ */
+.pagination{
+  display:flex;align-items:center;gap:4px;padding:10px 14px;
+  border-top:1px solid var(--border);background:var(--s2);
+  justify-content:space-between;flex-wrap:wrap;gap:8px;
+}
+.pg-info{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--t3)}
+.pg-btns{display:flex;align-items:center;gap:3px}
+.pg-btn{
+  width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);
+  cursor:pointer;font-size:11px;color:var(--t2);transition:var(--trans);
+}
+.pg-btn:hover{border-color:var(--primary);color:var(--primary)}
+.pg-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.pg-btn:disabled{opacity:.35;cursor:not-allowed}
+.pg-size{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:4px 7px;
+  font-size:11px;color:var(--t2);outline:none;cursor:pointer;
+}
+
+/* ══════════════════════════════════════════════
+   MODALS
+══════════════════════════════════════════════ */
+.overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);
+  z-index:1000;display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .22s;
+}
+.overlay.open{opacity:1;pointer-events:all}
+.modal{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:24px;
+  width:620px;max-width:92vw;max-height:92vh;overflow-y:auto;
+  box-shadow:var(--shadow-lg);
+  transform:translateY(-12px) scale(.98);transition:transform .22s;
+}
+.overlay.open .modal{transform:translateY(0) scale(1)}
+.m-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.m-title{font-size:16px;font-weight:700;color:var(--text)}
+.m-x{width:28px;height:28px;background:var(--s2);border:1px solid var(--border);border-radius:var(--r-sm);cursor:pointer;color:var(--t2);font-size:14px;display:flex;align-items:center;justify-content:center;transition:var(--trans)}
+.m-x:hover{border-color:var(--danger);color:var(--danger)}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.fg-full{grid-column:span 2}
+.flbl{display:block;font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.finp,.fsel,.fta{
+  width:100%;background:var(--s2);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:8px 10px;
+  font-family:'IBM Plex Sans',sans-serif;font-size:12px;color:var(--text);outline:none;
+  transition:var(--trans);
+}
+.finp:focus,.fsel:focus,.fta:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--pri-bg)}
+.fta{resize:vertical;min-height:64px}
+.m-ft{display:flex;justify-content:flex-end;gap:7px;padding-top:14px;border-top:1px solid var(--border);margin-top:4px}
+
+/* Confirm */
+.confirm-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:24px 28px;width:320px;text-align:center;box-shadow:var(--shadow-lg)}
+.conf-icon{font-size:32px;margin-bottom:8px}
+.conf-ttl{font-size:15px;font-weight:700;margin-bottom:5px}
+.conf-msg{font-size:11px;color:var(--t3);margin-bottom:16px}
+.conf-btns{display:flex;gap:7px;justify-content:center}
+
+/* ══════════════════════════════════════════════
+   DATABASE TAB
+══════════════════════════════════════════════ */
+.upload-zone{
+  border:2px dashed var(--border);border-radius:var(--r);
+  padding:28px 24px;text-align:center;cursor:pointer;
+  transition:var(--trans);background:var(--surface);
+  position:relative;margin-bottom:16px;
+}
+.upload-zone:hover,.upload-zone.dragging{border-color:var(--primary);background:var(--pri-bg)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;z-index:1}
+.uz-icon{font-size:36px;margin-bottom:8px;opacity:.6}
+.uz-title{font-size:14px;font-weight:600;margin-bottom:4px}
+.uz-sub{font-size:11px;color:var(--t3);margin-bottom:10px}
+.uz-formats{display:flex;justify-content:center;gap:6px}
+.fmt-tag{background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:3px 9px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--primary);font-weight:600}
+
+.db-stats{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;
+  margin-bottom:16px;
+}
+.ds-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;box-shadow:var(--shadow)}
+.ds-label{font-size:10px;color:var(--t3);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.ds-val{font-size:20px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--text)}
+.ds-sub{font-size:10px;color:var(--t3)}
+
+.freshness-warn{
+  background:var(--war-bg);border:1px solid var(--war-b);
+  border-radius:var(--r-sm);padding:10px 14px;
+  font-size:12px;color:var(--warn);margin-bottom:14px;
+  display:none;
+}
+.freshness-warn.show{display:block}
+
+/* ══════════════════════════════════════════════
+   REPORTING TAB
+══════════════════════════════════════════════ */
+.report-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:16px}
+@media(max-width:900px){.report-grid{grid-template-columns:1fr}}
+/* Report hero banner */
+.rep-hero{background:linear-gradient(135deg,#0a1628 0%,var(--primary) 100%);border-radius:var(--r);padding:20px 24px;margin-bottom:18px;color:#fff;display:flex;align-items:center;gap:14px}
+.rep-hero-icon{font-size:2rem}
+.rep-hero-title{font-size:15px;font-weight:800;letter-spacing:-.3px}
+.rep-hero-sub{font-size:11px;opacity:.72;margin-top:3px}
+/* Report cards */
+.rep-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;box-shadow:var(--shadow)}
+.rep-title{font-size:13px;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:7px;color:var(--text)}
+.rep-sub{font-size:11px;color:var(--t3);margin-bottom:14px;padding-bottom:11px;border-bottom:1px solid var(--border)}
+.rep-fields{display:flex;flex-direction:column;gap:11px}
+/* Preview panel */
+.rep-preview-wrap{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden;margin-bottom:12px}
+.rep-preview-bar{background:var(--s2);border-bottom:1px solid var(--border);padding:7px 12px;display:flex;align-items:center;justify-content:space-between}
+.rep-preview-bar-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);display:flex;align-items:center;gap:6px}
+.rep-preview{
+  padding:14px;font-size:11px;color:var(--t2);line-height:1.9;
+  white-space:pre-wrap;font-family:'IBM Plex Mono',monospace;
+  min-height:340px;max-height:520px;overflow-y:auto;
+}
+/* Action buttons row */
+.rep-actions{display:flex;gap:7px;flex-wrap:wrap}
+.rep-btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.rep-btn-row .btn{flex:1;min-width:110px;justify-content:center;padding:10px 14px}
+
+/* ══════════════════════════════════════════════
+   ADMIN TAB
+══════════════════════════════════════════════ */
+.admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.adm-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;box-shadow:var(--shadow)}
+.adm-title{font-size:13px;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:7px}
+.adm-sub{font-size:11px;color:var(--t3);margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.adm-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--b2)}
+.adm-row:last-child{border-bottom:none}
+.adm-lbl{font-size:12px;color:var(--t2)}
+.adm-val{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--primary)}
+.toggle-wrap{position:relative;width:38px;height:20px;display:inline-block}
+.toggle-wrap input{opacity:0;width:0;height:0}
+.tslider{position:absolute;inset:0;background:var(--s2);border:1px solid var(--border);border-radius:20px;cursor:pointer;transition:.25s}
+.tslider::before{content:'';position:absolute;width:14px;height:14px;left:2px;top:2px;background:var(--t3);border-radius:50%;transition:.25s}
+.toggle-wrap input:checked + .tslider{background:var(--primary);border-color:var(--primary)}
+.toggle-wrap input:checked + .tslider::before{transform:translateX(18px);background:#fff}
+
+/* Theme cards */
+.theme-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.th-card{border:2px solid var(--border);border-radius:var(--r);padding:12px 13px;cursor:pointer;transition:var(--trans);text-align:left;background:var(--surface)}
+.th-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.14)}
+.th-card.selected{border-color:var(--primary);background:var(--pri-bg);box-shadow:0 0 0 3px var(--pri-b)}
+.th-swatch-row{display:flex;gap:3px;height:7px;border-radius:3px;overflow:hidden;margin-bottom:9px}
+.th-s1,.th-s2,.th-s3{border-radius:3px}
+.th-name{font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px}
+.th-desc{font-size:10px;color:var(--t3);line-height:1.4}
+.th-active-badge{display:inline-block;font-size:9px;font-weight:700;color:var(--primary);background:var(--pri-bg);padding:2px 7px;border-radius:8px;margin-top:5px;border:1px solid var(--pri-b)}
+
+/* ══════════════════════════════════════════════
+   MANUAL TAB
+══════════════════════════════════════════════ */
+.manual-wrap{display:grid;grid-template-columns:210px 1fr;gap:16px;align-items:start}
+@media(max-width:800px){.manual-wrap{grid-template-columns:1fr}}
+.man-nav{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px;position:sticky;top:90px;box-shadow:var(--shadow)}
+.man-nav-ttl{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid var(--border)}
+.man-item{display:flex;align-items:center;gap:7px;padding:6px 9px;border-radius:5px;cursor:pointer;font-size:11px;font-weight:500;color:var(--t2);transition:var(--trans);margin-bottom:2px}
+.man-item:hover{background:var(--s2);color:var(--text)}
+.man-item.active{background:var(--pri-bg);color:var(--primary)}
+.man-body{display:flex;flex-direction:column;gap:12px}
+.man-sec{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;box-shadow:var(--shadow)}
+.ms-ttl{font-size:15px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:9px}
+.ms-sub{font-size:11px;color:var(--t3);margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.ms-body{font-size:12px;color:var(--t2);line-height:1.8}
+.ms-body h4{font-size:12px;font-weight:700;color:var(--text);margin:14px 0 5px}
+.ms-body p{margin-bottom:8px}
+.ms-body ul,.ms-body ol{padding-left:18px;margin-bottom:10px}
+.ms-body li{margin-bottom:4px}
+.ms-body code{background:var(--s2);border:1px solid var(--border);border-radius:3px;padding:1px 5px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--primary)}
+.tip-box{background:var(--pri-bg);border:1px solid var(--pri-b);border-radius:var(--r-sm);padding:8px 12px;margin:8px 0;font-size:11px;line-height:1.6}
+.warn-box{background:var(--war-bg);border:1px solid var(--war-b);border-radius:var(--r-sm);padding:8px 12px;margin:8px 0;font-size:11px}
+.key-table{width:100%;border-collapse:collapse;font-size:11px}
+.key-table td{padding:5px 8px;border-bottom:1px solid var(--b2)}
+.key-table td:last-child{font-family:'IBM Plex Mono',monospace;text-align:right}
+kbd{background:var(--s2);border:1px solid var(--border);border-radius:3px;padding:1px 5px;font-family:'IBM Plex Mono',monospace;font-size:10px}
+
+/* ══════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════ */
+#toasts{position:fixed;bottom:18px;right:18px;z-index:9999;display:flex;flex-direction:column;gap:6px}
+.toast{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;min-width:210px;box-shadow:var(--shadow-lg);font-size:12px;animation:tIn .25s ease,tOut .25s 2.8s ease forwards}
+.toast.t-ok{border-left:3px solid var(--success)}
+.toast.t-err{border-left:3px solid var(--danger)}
+.toast.t-info{border-left:3px solid var(--primary)}
+.toast.t-warn{border-left:3px solid var(--warn)}
+@keyframes tIn{from{transform:translateX(30px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes tOut{from{opacity:1}to{opacity:0;transform:translateX(30px)}}
+
+/* ══════════════════════════════════════════════
+   MISC UTILITIES
+══════════════════════════════════════════════ */
+.empty-state{padding:48px 20px;text-align:center;color:var(--t3)}
+.empty-state .es-icon{font-size:40px;opacity:.35;margin-bottom:10px}
+.empty-state h3{font-size:14px;color:var(--t2);margin-bottom:4px}
+.empty-state p{font-size:11px}
+hr.hr{border:none;border-top:1px solid var(--border);margin:14px 0}
+.divider-label{font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin:14px 0 8px;display:flex;align-items:center;gap:8px}
+.divider-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.flash{animation:rowFlash 1.2s ease}
+@keyframes rowFlash{0%{background:var(--suc-bg)}100%{background:transparent}}
+</style>
+</head>
+<body data-theme="corporate">
+
+<!-- ════════════════════════════════════════════════
+     HEADER
+════════════════════════════════════════════════ -->
+<header class="app-header no-print">
+  <div class="brand">
+    <div class="brand-mark">AR</div>
+    <div>
+      <div class="brand-text">AU-ARS <em>·</em> ACTION REQUEST SYSTEM</div>
+      <div class="brand-sub">AU-ARS · Action Request System</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span id="clock-display"></span>
+    <div class="sync-pill" id="syncPill" onclick="manualSync()" title="Click to force sync now">
+      <div class="sync-dot" id="syncDot"></div>
+      <span id="syncLabel">Connecting…</span>
+    </div>
+    <div class="theme-wrap">
+      <button class="theme-pill" onclick="toggleThemeDD()">🎨 <span id="themeLabel">Light Corporate</span> ▾</button>
+      <div class="theme-dd" id="themeDD">
+        <div class="theme-item active" onclick="setTheme('corporate','Light Corporate')" data-t="corporate"><span class="t-swatch" style="background:linear-gradient(135deg,#f0f4f8,#1559a8)"></span>Light Corporate</div>
+        <div class="theme-item" onclick="setTheme('dark','Dark Mode')" data-t="dark"><span class="t-swatch" style="background:linear-gradient(135deg,#0c0f14,#3d8ef5)"></span>Dark Mode</div>
+        <div class="theme-item" onclick="setTheme('blue','Modern Blue')" data-t="blue"><span class="t-swatch" style="background:linear-gradient(135deg,#060e1e,#4da3ff)"></span>Modern Blue</div>
+        <div class="theme-item" onclick="setTheme('emerald','Emerald Green')" data-t="emerald"><span class="t-swatch" style="background:linear-gradient(135deg,#061209,#2ed47a)"></span>Emerald Green</div>
+        <div class="theme-item" onclick="setTheme('slate','Minimal Slate')" data-t="slate"><span class="t-swatch" style="background:linear-gradient(135deg,#f8f9fa,#495057)"></span>Minimal Slate</div>
+        <div class="theme-item" onclick="setTheme('purple','Executive Purple')" data-t="purple"><span class="t-swatch" style="background:linear-gradient(135deg,#0d0816,#a67cff)"></span>Executive Purple</div>
+        <div class="theme-item" onclick="setTheme('contrast','High Contrast')" data-t="contrast"><span class="t-swatch" style="background:linear-gradient(135deg,#000,#00e5ff)"></span>High Contrast</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ════════════════════════════════════════════════
+     ALERT BANNER
+════════════════════════════════════════════════ -->
+<div id="alertBanner" style="display:none" onclick="switchToTab('records')"></div>
+
+<!-- ════════════════════════════════════════════════
+     TAB NAV
+════════════════════════════════════════════════ -->
+<nav class="tab-nav no-print">
+  <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
+  <button class="tab-btn" data-tab="records">📋 AR Records <span class="tab-num" id="tnum-records">0</span></button>
+  <button class="tab-btn" data-tab="database">🗄 Database</button>
+  <button class="tab-btn" data-tab="reporting">📧 Reporting</button>
+  <button class="tab-btn" data-tab="admin">⚙️ Admin</button>
+  <button class="tab-btn" data-tab="manual">📖 Manual</button>
+</nav>
+
+<!-- ════════════════════════════════════════════════
+     TAB: DASHBOARD
+════════════════════════════════════════════════ -->
+<div class="tab-content active" id="tab-dashboard">
+<div class="page">
+
+  <!-- KPI CARDS — 6 clickable cards, 3+3 -->
+  <div class="kpi-row" style="grid-template-columns:repeat(3,1fr)" id="kpiRow1">
+    <div class="kpi k-primary kpi-clickable" onclick="toggleKpiPanel('all')" data-kpi="all" title="Click to see all ARs">
+      <div class="kpi-icon">📁</div><div class="kpi-label">Total ARs</div>
+      <div class="kpi-main"><div class="kpi-num" id="k-total">0</div><span class="kpi-click-hint">↓ view all</span></div>
+      <div class="kpi-sub">Click to view records</div>
+    </div>
+    <div class="kpi k-success kpi-clickable" onclick="toggleKpiPanel('active')" data-kpi="active" title="Click to see active ARs">
+      <div class="kpi-icon">▶</div><div class="kpi-label">Active</div>
+      <div class="kpi-main"><div class="kpi-num" id="k-active">0</div><span class="kpi-click-hint">↓ view</span></div>
+      <div class="kpi-sub">In progress</div>
+    </div>
+    <div class="kpi k-pastdue kpi-clickable" onclick="toggleKpiPanel('pastdue')" data-kpi="pastdue" title="Click to see past due ARs">
+      <div class="kpi-icon">🔴</div><div class="kpi-label">Past Due Status</div>
+      <div class="kpi-main"><div class="kpi-num" id="k-pastdue">0</div><span class="kpi-click-hint">↓ view</span></div>
+      <div class="kpi-sub">Escalated — needs action</div>
+    </div>
+  </div>
+
+  <!-- KPI PANEL 1 (expands below row 1) -->
+  <div class="kpi-panel" id="kpi-panel-row1" style="display:none"></div>
+
+  <div class="kpi-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:4px" id="kpiRow2">
+    <div class="kpi k-purple kpi-clickable" onclick="toggleKpiPanel('hold')" data-kpi="hold" title="Click to see on hold ARs">
+      <div class="kpi-icon">⏸</div><div class="kpi-label">On Hold</div>
+      <div class="kpi-main"><div class="kpi-num" id="k-hold">0</div><span class="kpi-click-hint">↓ view</span></div>
+      <div class="kpi-sub">Awaiting direction</div>
+    </div>
+    <div class="kpi k-danger kpi-clickable" onclick="toggleKpiPanel('overdue')" data-kpi="overdue" title="Click to see overdue ARs">
+      <div class="kpi-icon">⚠</div><div class="kpi-label">Overdue</div>
+      <div class="kpi-main"><div class="kpi-num" id="k-overdue">0</div><span class="kpi-click-hint">↓ view</span></div>
+      <div class="kpi-sub">Days past due date</div>
+    </div>
+    <div class="kpi k-warn kpi-clickable" onclick="toggleKpiPanel('today')" data-kpi="today" title="Click to see due today">
+      <div class="kpi-icon">🕐</div><div class="kpi-label">Due Today</div>
+      <div class="kpi-main"><div class="kpi-num" id="k-today">0</div><span class="kpi-click-hint">↓ view</span></div>
+      <div class="kpi-sub">Action required today</div>
+    </div>
+  </div>
+
+  <!-- KPI PANEL 2 (expands below row 2) -->
+  <div class="kpi-panel" id="kpi-panel-row2" style="display:none"></div>
+
+  <!-- ── REVIEW TABS ROW ── -->
+  <div class="review-row-label">👥 Team Review Queues — click to view assignments</div>
+  <div class="kpi-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:4px" id="kpiRow3">
+    <div class="kpi k-ed kpi-clickable" onclick="toggleKpiPanel('ed')" data-kpi="ed" title="ARs assigned to UT Generation, Transmission &amp; Markets">
+      <div class="kpi-icon">🏢</div>
+      <div class="kpi-label">ED Review</div>
+      <div class="kpi-main"><div class="kpi-num" id="k-ed">0</div><span class="kpi-click-hint">↓ view</span></div>
+      <div class="kpi-sub">UT Generation, T&amp;M</div>
+    </div>
+    <div class="kpi k-dir kpi-clickable" onclick="toggleKpiPanel('directors')" data-kpi="directors" title="ARs assigned to Directors">
+      <div class="kpi-icon">📊</div>
+      <div class="kpi-label">Directors Review</div>
+      <div class="kpi-main"><div class="kpi-num" id="k-directors">0</div><span class="kpi-click-hint">↓ view</span></div>
+      <div class="kpi-sub">Sandy · Betsy · Robert</div>
+    </div>
+    <div class="kpi k-mgr kpi-clickable" onclick="toggleKpiPanel('managers')" data-kpi="managers" title="ARs assigned to Managers">
+      <div class="kpi-icon">👤</div>
+      <div class="kpi-label">Managers Review</div>
+      <div class="kpi-main"><div class="kpi-num" id="k-managers">0</div><span class="kpi-click-hint">↓ view</span></div>
+      <div class="kpi-sub">All other assigned staff</div>
+    </div>
+  </div>
+
+  <!-- KPI PANEL 3 (expands below review row) -->
+  <div class="kpi-panel" id="kpi-panel-row3" style="display:none"></div>
+
+  <!-- Main 2-col layout -->
+  <div class="dash-grid">
+    <!-- LEFT: Priority queue + full AR list -->
+    <div>
+      <!-- Priority Action Queue -->
+      <div class="sec-hd">
+        <div class="sec-title">Priority Action Required</div>
+        <button class="btn btn-ghost btn-sm" onclick="switchToTab('records')">View All →</button>
+      </div>
+      <div class="priority-list" id="priorityList">
+        <div class="pl-header">
+          <span class="pl-title">⚡ Immediate Attention — Due Today &amp; Critically Overdue</span>
+          <span class="pl-count" id="pl-count">0 items</span>
+        </div>
+        <div id="priorityItems"></div>
+      </div>
+
+      <!-- Full AR List on Dashboard -->
+      <div class="sec-hd" style="margin-top:4px">
+        <div class="sec-title">All Action Requests</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <select class="fsel" id="dash-status-filter" style="font-size:11px;padding:4px 8px">
+            <option value="">All Statuses</option>
+            <option value="Active">Active</option>
+            <option value="Past Due">Past Due</option>
+            <option value="Hold">Hold</option>
+            <option value="Completed">Completed</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="switchToTab('records');openAddModal()">＋ Add</button>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="tc-header">
+          <span class="tc-title">AR Records — Dashboard View</span>
+          <span class="tc-meta" id="dash-rec-count">0 records</span>
+        </div>
+        <div class="tc-scroll" style="max-height:420px">
+          <table class="ar-t" id="dashTable">
+            <thead><tr>
+              <th onclick="sortBy('ar','dash')">AR #</th>
+              <th onclick="sortBy('subject','dash')">Subject</th>
+              <th>Status</th>
+              <th onclick="sortBy('due','dash')">Due Date</th>
+              <th onclick="sortBy('aging','dash')">Aging</th>
+              <th onclick="sortBy('owner','dash')">Owner</th>
+              <th style="width:60px;text-align:center">Act</th>
+            </tr></thead>
+            <tbody id="dashTbody"></tbody>
+          </table>
+          <div class="empty-state" id="dashEmpty" style="display:none"><div class="es-icon">📭</div><h3>No records</h3><p>Go to Database tab to upload data</p></div>
+        </div>
+        <div class="pagination" id="dashPagination"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Sidebar charts & workload -->
+    <div class="sidebar-panel">
+
+      <!-- Aging distribution mini -->
+      <div class="chart-card">
+        <div class="cc-title">Aging Distribution <span class="cc-tag">DAYS PAST DUE</span></div>
+        <div id="agingMiniDiv" class="aging-mini"></div>
+      </div>
+
+      <!-- Status donut -->
+      <div class="chart-card">
+        <div class="cc-title">Status Breakdown <span class="cc-tag">CURRENT</span></div>
+        <div class="chart-wrap" style="height:160px"><canvas id="statusChart"></canvas></div>
+      </div>
+
+      <!-- Owner workload -->
+      <div class="chart-card">
+        <div class="cc-title">Owner Workload <span class="cc-tag">ASSIGNMENT</span></div>
+        <div id="workloadDiv" class="workload-list"></div>
+      </div>
+
+      <!-- Action type chart -->
+      <div class="chart-card">
+        <div class="cc-title">Action Type Mix <span class="cc-tag">CATEGORY</span></div>
+        <div class="chart-wrap" style="height:160px"><canvas id="actionChart"></canvas></div>
+      </div>
+
+    </div>
+  </div>
+
+</div></div>
+
+<!-- ════════════════════════════════════════════════
+     TAB: AR RECORDS
+════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-records">
+<div class="page">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+    <div class="page-title">AR Records <span class="page-title-sub">Full CRUD — click any cell to edit inline</span></div>
+    <div style="display:flex;gap:7px">
+      <button class="btn btn-primary" onclick="openAddModal()">＋ Add AR</button>
+      <button class="btn btn-success" onclick="exportCSV()">⬇ CSV</button>
+      <button class="btn btn-outline btn-sm" onclick="exportJSON()">⬇ JSON</button>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="srch-wrap"><input class="srch" id="searchInput" placeholder="Search AR#, subject, owner, action, notes…"></div>
+    <select class="fsel" id="statusFilter">
+      <option value="">All Statuses</option>
+      <option value="Active">Active</option>
+      <option value="Past Due">Past Due</option>
+      <option value="Hold">Hold</option>
+      <option value="Completed">Completed</option>
+      <option value="Cancelled">Cancelled</option>
+    </select>
+    <select class="fsel" id="agingFilter">
+      <option value="">All Aging</option>
+      <option value="due-today">Due Today</option>
+      <option value="1-3">1–3 Days</option>
+      <option value="4-7">4–7 Days</option>
+      <option value="8-15">8–15 Days</option>
+      <option value="16-30">16–30 Days</option>
+      <option value="30plus">30+ Days</option>
+      <option value="future">Upcoming</option>
+    </select>
+    <select class="fsel" id="ownerFilter"><option value="">All Owners</option></select>
+    <button class="btn btn-ghost btn-sm" onclick="clearFilters()">↺ Reset</button>
+  </div>
+
+  <div class="table-card">
+    <div class="tc-header">
+      <span class="tc-title">Action Requests</span>
+      <span class="tc-meta" id="rec-count">0 records</span>
+    </div>
+    <div class="tc-scroll">
+      <table class="ar-t" id="fullTable">
+        <thead><tr>
+          <th onclick="sortBy('ar','full')">AR # ↕</th>
+          <th onclick="sortBy('subject','full')">Subject ↕</th>
+          <th onclick="sortBy('status','full')">Status</th>
+          <th onclick="sortBy('due','full')">Due Date ↕</th>
+          <th onclick="sortBy('aging','full')">Aging ↕</th>
+          <th>Action Type</th>
+          <th onclick="sortBy('owner','full')">Owner ↕</th>
+          <th>Notes</th>
+          <th style="width:72px;text-align:center" class="no-print">Actions</th>
+        </tr></thead>
+        <tbody id="fullTbody"></tbody>
+      </table>
+      <div class="empty-state" id="fullEmpty" style="display:none"><div class="es-icon">📭</div><h3>No records found</h3><p>Try adjusting filters or go to Database to upload data</p></div>
+    </div>
+    <div class="pagination" id="fullPagination"></div>
+  </div>
+</div></div>
+
+<!-- ════════════════════════════════════════════════
+     TAB: DATABASE
+════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-database">
+<div class="page">
+  <div class="page-title">🗄 Database <span class="page-title-sub">Upload, manage and replace AR data</span></div>
+
+  <div class="freshness-warn" id="freshnessWarn">
+    ⚠️ <strong>Data Freshness Notice:</strong> Your dataset contains AR records that appear older than 90 days. Aging calculations may show large numbers. Consider uploading a refreshed export.
+  </div>
+
+  <!-- Upload zone -->
+  <div class="upload-zone" id="uploadZone">
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+    <div class="uz-icon">📂</div>
+    <div class="uz-title">Upload AR Data File</div>
+    <div class="uz-sub">Drag & drop or click — replaces current session data instantly</div>
+    <div class="uz-formats">
+      <span class="fmt-tag">XLSX</span>
+      <span class="fmt-tag">XLS</span>
+      <span class="fmt-tag">CSV</span>
+    </div>
+  </div>
+
+  <!-- DB Stats -->
+  <div class="sec-hd"><div class="sec-title">Session Data Summary</div></div>
+  <div class="db-stats">
+    <div class="ds-card"><div class="ds-label">Total Records</div><div class="ds-val" id="db-total">0</div><div class="ds-sub">All loaded ARs</div></div>
+    <div class="ds-card"><div class="ds-label">Active</div><div class="ds-val" id="db-active">0</div><div class="ds-sub">In progress</div></div>
+    <div class="ds-card"><div class="ds-label">Past Due Status</div><div class="ds-val" id="db-pastdue" style="color:var(--pastdue)">0</div><div class="ds-sub">Escalated</div></div>
+    <div class="ds-card"><div class="ds-label">Overdue (calc)</div><div class="ds-val" id="db-overdue" style="color:var(--danger)">0</div><div class="ds-sub">Past due date</div></div>
+    <div class="ds-card"><div class="ds-label">Unique Owners</div><div class="ds-val" id="db-owners">0</div><div class="ds-sub">Distinct assignees</div></div>
+    <div class="ds-card"><div class="ds-label">Session Changes</div><div class="ds-val" id="db-changes">0</div><div class="ds-sub">Edits this session</div></div>
+    <div class="ds-card"><div class="ds-label">Data Source</div><div class="ds-val" id="db-source" style="font-size:13px">Seed</div><div class="ds-sub" id="db-loaded">Embedded data</div></div>
+  </div>
+
+  <!-- Actions -->
+  <div class="sec-hd"><div class="sec-title">Data Actions</div></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px">
+    <button class="btn btn-success" onclick="exportCSV()">⬇ Export CSV</button>
+    <button class="btn btn-outline" onclick="exportJSON()">⬇ Export JSON</button>
+    <button class="btn btn-ghost" onclick="printDashboard()">🖨 Print Report</button>
+    <button class="btn btn-danger" onclick="confirmReset()">🗑 Reset to Seed Data</button>
+  </div>
+
+  <!-- Schema reference -->
+  <div class="sec-hd"><div class="sec-title">Expected Column Names</div></div>
+  <div class="table-card">
+    <div class="tc-scroll">
+      <table class="ar-t">
+        <thead><tr><th>Column</th><th>Accepted Names</th><th>Required</th><th>Format</th></tr></thead>
+        <tbody>
+          <tr><td class="c-ar">AR #</td><td>AR #, AR#, AR Number</td><td style="color:var(--danger)">Yes</td><td>Integer</td></tr>
+          <tr><td>Subject</td><td>Subject, Description, Title</td><td style="color:var(--danger)">Yes</td><td>Text</td></tr>
+          <tr><td>Status</td><td>Status</td><td>No</td><td>Active / Past Due / Hold / Completed / Cancelled</td></tr>
+          <tr><td>Received Date</td><td>Rec'd Date, Received, RecDate</td><td>No</td><td>Date</td></tr>
+          <tr><td>Due Date</td><td>Due Date, DueDate, Due</td><td>No</td><td>Date</td></tr>
+          <tr><td>Action Type</td><td>Action, Action Type</td><td>No</td><td>Text</td></tr>
+          <tr><td>Owner</td><td>Assigned To, Owner, Assigned, Member</td><td>No</td><td>Text</td></tr>
+          <tr><td>Notes</td><td>Reminders, Notes, Comments</td><td>No</td><td>Text</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div></div>
+
+<!-- ════════════════════════════════════════════════
+     TAB: REPORTING
+════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-reporting">
+<div class="page">
+  <div class="page-title">📧 Reporting <span class="page-title-sub">Generate and distribute operational AR reports</span></div>
+
+  <!-- Hero banner -->
+  <div class="rep-hero">
+    <div class="rep-hero-icon">📧</div>
+    <div>
+      <div class="rep-hero-title">AU-ARS · Action Request System — Report Builder</div>
+      <div class="rep-hero-sub">Generate professional snapshots of your AR portfolio for leadership and stakeholders</div>
+    </div>
+  </div>
+
+  <div class="report-grid">
+    <!-- Config panel -->
+    <div class="rep-card">
+      <div class="rep-title">⚙️ Report Settings</div>
+      <div class="rep-sub">Configure then click Generate to build your report</div>
+      <div class="rep-fields">
+        <div><label class="flbl">Report Title</label><input class="finp" id="r-title" value="AR Operational Status Report"></div>
+        <div><label class="flbl">Report Type</label>
+          <select class="fsel" id="r-type" style="width:100%" onchange="generateReport()">
+            <option value="executive">Executive Summary</option>
+            <option value="pastdue">Past Due &amp; Overdue ARs</option>
+            <option value="full">Full AR Listing</option>
+            <option value="byowner">By Owner / Assigned</option>
+            <option value="aging">Aging Breakdown</option>
+            <option value="today">Due Today</option>
+          </select>
+        </div>
+        <div><label class="flbl">Status Filter</label>
+          <select class="fsel" id="r-status" style="width:100%" onchange="generateReport()">
+            <option value="">All Statuses</option>
+            <option value="Active">Active Only</option>
+            <option value="Past Due">Past Due Only</option>
+            <option value="Hold">On Hold Only</option>
+          </select>
+        </div>
+        <div><label class="flbl">Prepared By</label><input class="finp" id="r-author" placeholder="Your name / department"></div>
+        <div><label class="flbl">Additional Notes</label><textarea class="fta" id="r-notes" placeholder="Optional context for recipients…"></textarea></div>
+        <hr class="hr">
+        <div class="divider-label">📬 Email Distribution</div>
+        <div><label class="flbl">To</label><input class="finp" id="r-to" type="email" placeholder="director@gov.ab.ca"></div>
+        <div><label class="flbl">CC</label><input class="finp" id="r-cc" type="email" placeholder="manager@gov.ab.ca"></div>
+        <div><label class="flbl">Subject Line</label><input class="finp" id="r-subj" value="AU-ARS · Action Request System — Operational Status Report"></div>
+        <!-- Main action buttons -->
+        <div class="rep-btn-row">
+          <button class="btn btn-primary" onclick="generateReport()" style="flex:2">⚡ Generate Report</button>
+          <button class="btn btn-outline" onclick="openEmail()">✉️ Open in Email</button>
+        </div>
+        <div class="rep-btn-row" style="margin-top:7px">
+          <button class="btn btn-success" onclick="downloadReport()" style="background:#0a7c55;border-color:#0a7c55;white-space:nowrap">⬇ Download HTML</button>
+          <button class="btn btn-success" onclick="copyReport()">📋 Copy Text</button>
+          <button class="btn btn-ghost" onclick="printReport()">🖨 Print</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview panel -->
+    <div class="rep-card">
+      <div class="rep-title">👁 Live Preview</div>
+      <div class="rep-sub">Auto-updates as you change report type or filter</div>
+      <div class="rep-preview-wrap">
+        <div class="rep-preview-bar">
+          <div class="rep-preview-bar-title">📄 Report Output</div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="copyReport()">📋 Copy</button>
+            <button class="btn btn-ghost btn-sm" onclick="printReport()">🖨 Print</button>
+          </div>
+        </div>
+        <div class="rep-preview" id="reportPreview">Click ⚡ Generate Report to build your report preview…</div>
+      </div>
+      <div class="rep-actions">
+        <button class="btn btn-primary btn-sm" onclick="openEmail()">✉️ Send via Email</button>
+        <button class="btn btn-success btn-sm" onclick="downloadReport()" style="background:#0a7c55;border-color:#0a7c55;white-space:nowrap">⬇ Download HTML</button>
+        <button class="btn btn-success btn-sm" onclick="copyReport()">📋 Copy Text</button>
+        <button class="btn btn-ghost btn-sm" onclick="printReport()">🖨 Print / PDF</button>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<!-- ════════════════════════════════════════════════
+     TAB: ADMIN
+════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-admin">
+<div class="page">
+  <div class="page-title">⚙️ Admin <span class="page-title-sub">Settings, themes &amp; configuration</span></div>
+
+  <!-- Theme cards -->
+  <div class="adm-card" style="margin-bottom:14px">
+    <div class="adm-title">🎨 Theme Manager</div>
+    <div class="adm-sub">Select visual theme — applies instantly across the dashboard</div>
+    <div class="theme-cards" id="adminThemeCards">
+      <div class="th-card selected" onclick="setTheme('corporate','Light Corporate')" data-th="corporate">
+        <div class="th-swatch-row"><div class="th-s1" style="flex:1;background:#1a3a6b"></div><div class="th-s2" style="flex:2;background:#f0f4f8"></div><div class="th-s3" style="flex:1;background:#1559a8"></div></div>
+        <div class="th-name">🌤 Light Corporate</div><div class="th-desc">Clean blue · Professional</div>
+        <div class="th-active-badge" style="display:none">✓ Active</div>
+      </div>
+      <div class="th-card" onclick="setTheme('dark','Dark Mode')" data-th="dark">
+        <div class="th-swatch-row"><div class="th-s1" style="flex:1;background:#080c14"></div><div class="th-s2" style="flex:2;background:#0c0f14"></div><div class="th-s3" style="flex:1;background:#3d8ef5"></div></div>
+        <div class="th-name">🌙 Dark Mode</div><div class="th-desc">Deep navy · Presentations</div>
+        <div class="th-active-badge" style="display:none">✓ Active</div>
+      </div>
+      <div class="th-card" onclick="setTheme('blue','Modern Blue')" data-th="blue">
+        <div class="th-swatch-row"><div class="th-s1" style="flex:1;background:#021030"></div><div class="th-s2" style="flex:2;background:#060e1e"></div><div class="th-s3" style="flex:1;background:#4da3ff"></div></div>
+        <div class="th-name">🔵 Modern Blue</div><div class="th-desc">Vivid blue · High energy</div>
+        <div class="th-active-badge" style="display:none">✓ Active</div>
+      </div>
+      <div class="th-card" onclick="setTheme('emerald','Emerald Green')" data-th="emerald">
+        <div class="th-swatch-row"><div class="th-s1" style="flex:1;background:#042010"></div><div class="th-s2" style="flex:2;background:#061209"></div><div class="th-s3" style="flex:1;background:#2ed47a"></div></div>
+        <div class="th-name">🌿 Emerald Green</div><div class="th-desc">Fresh green · Growth</div>
+        <div class="th-active-badge" style="display:none">✓ Active</div>
+      </div>
+      <div class="th-card" onclick="setTheme('slate','Minimal Slate')" data-th="slate">
+        <div class="th-swatch-row"><div class="th-s1" style="flex:1;background:#343a40"></div><div class="th-s2" style="flex:2;background:#f8f9fa"></div><div class="th-s3" style="flex:1;background:#495057"></div></div>
+        <div class="th-name">🪨 Minimal Slate</div><div class="th-desc">Neutral · Ultra-clean</div>
+        <div class="th-active-badge" style="display:none">✓ Active</div>
+      </div>
+      <div class="th-card" onclick="setTheme('purple','Executive Purple')" data-th="purple">
+        <div class="th-swatch-row"><div class="th-s1" style="flex:1;background:#0d0816"></div><div class="th-s2" style="flex:2;background:#120a22"></div><div class="th-s3" style="flex:1;background:#a67cff"></div></div>
+        <div class="th-name">👑 Executive Purple</div><div class="th-desc">Deep violet · Authoritative</div>
+        <div class="th-active-badge" style="display:none">✓ Active</div>
+      </div>
+      <div class="th-card" onclick="setTheme('contrast','High Contrast')" data-th="contrast">
+        <div class="th-swatch-row"><div class="th-s1" style="flex:1;background:#000"></div><div class="th-s2" style="flex:2;background:#efefef"></div><div class="th-s3" style="flex:1;background:#00e5ff"></div></div>
+        <div class="th-name">⚡ High Contrast</div><div class="th-desc">Max legibility · Accessibility</div>
+        <div class="th-active-badge" style="display:none">✓ Active</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVIEW GROUPS CONFIG CARD -->
+  <div class="adm-card" style="margin-bottom:14px">
+    <div class="adm-title">👥 Review Group Configuration</div>
+    <div class="adm-sub">Members shown in ED Review, Directors Review, and Managers Review dashboard tabs</div>
+    <div style="margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;color:var(--t2);margin-bottom:4px">🏢 ED Review</div>
+      <div style="font-size:11px;color:var(--t3);line-height:1.7;background:var(--s2);border-radius:6px;padding:8px 10px">UT Generation, Transmission &amp; Markets</div>
+    </div>
+    <div style="margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;color:var(--t2);margin-bottom:4px">📊 Directors Review</div>
+      <div style="font-size:11px;color:var(--t3);line-height:1.7;background:var(--s2);border-radius:6px;padding:8px 10px">Sandy Lee &nbsp;·&nbsp; Betsy Li Alward &nbsp;·&nbsp; Robert Hendren</div>
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--t2);margin-bottom:4px">👤 Managers Review</div>
+      <div style="font-size:11px;color:var(--t3);background:var(--s2);border-radius:6px;padding:8px 10px" id="mgr-list-display">All other assigned owners (auto-populated)</div>
+    </div>
+    <div style="margin-top:10px;font-size:10px;color:var(--t3)">ℹ To change group members, update the ED_OWNERS, DIRECTOR_OWNERS arrays in the source file.</div>
+  </div>
+
+  <!-- SYNC STATUS CARD -->
+  <div class="adm-card" style="margin-bottom:14px;border:1px solid var(--pri-b);background:linear-gradient(135deg,var(--surface),var(--pri-bg))">
+    <div class="adm-title">📡 Live Cloud Sync <span id="adm-sync-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;margin-left:6px;vertical-align:middle"></span></div>
+    <div class="adm-sub">JSONbin.io — shared data across all users in real-time</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+      <div class="ds-card"><div class="ds-label">Cloud Workspace</div><div class="ds-val" style="font-size:13px">✅ GTM Shared · Secured</div></div>
+      <div class="ds-card"><div class="ds-label">Last Synced</div><div class="ds-val" style="font-size:13px" id="adm-last-sync">—</div></div>
+      <div class="ds-card"><div class="ds-label">Sync Status</div><div class="ds-val" id="adm-sync-status" style="font-size:12px;color:var(--success)">Connecting…</div></div>
+      <div class="ds-card"><div class="ds-label">Auto-Refresh</div><div class="ds-val">Every 30 seconds</div></div>
+    </div>
+    <div class="adm-row"><span class="adm-lbl">Live sync enabled</span><label class="toggle-wrap"><input type="checkbox" id="tog-sync" checked onchange="toggleSync(this.checked)"><span class="tslider"></span></label></div>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn btn-primary btn-sm" onclick="manualSync()">🔄 Sync Now</button>
+      <button class="btn btn-outline btn-sm" onclick="pushData()">☁ Push Changes</button>
+      <!-- bin link removed -->
+    </div>
+  </div>
+
+  <div class="admin-grid">
+    <!-- Status Config -->
+    <div class="adm-card">
+      <div class="adm-title">🏷 Status Definitions</div>
+      <div class="adm-sub">Operational meaning of each AR status</div>
+      <div class="adm-row"><span class="adm-lbl" style="color:var(--success)">● Active</span><span class="adm-val">Open, being worked, not yet past due</span></div>
+      <div class="adm-row"><span class="adm-lbl" style="color:var(--pastdue)">● Past Due</span><span class="adm-val">Explicitly escalated as overdue</span></div>
+      <div class="adm-row"><span class="adm-lbl" style="color:var(--purple)">● Hold</span><span class="adm-val">Awaiting direction, paused</span></div>
+      <div class="adm-row"><span class="adm-lbl" style="color:var(--primary)">● Completed</span><span class="adm-val">Signed off, work done</span></div>
+      <div class="adm-row"><span class="adm-lbl" style="color:var(--t3)">● Cancelled</span><span class="adm-val">Withdrawn or no longer needed</span></div>
+    </div>
+
+    <!-- Aging Config -->
+    <div class="adm-card">
+      <div class="adm-title">⏱ Aging Categories</div>
+      <div class="adm-sub">Calculated: Due Date vs Today's Date</div>
+      <div class="adm-row"><span class="adm-lbl" style="color:var(--primary)">Upcoming</span><span class="adm-val">Due date &gt; today</span></div>
+      <div class="adm-row"><span class="adm-lbl" style="color:var(--warn)">Due Today</span><span class="adm-val">0 days difference</span></div>
+      <div class="adm-row"><span class="adm-lbl">Recent Overdue</span><span class="adm-val">1–3 calendar days</span></div>
+      <div class="adm-row"><span class="adm-lbl">Short Overdue</span><span class="adm-val">4–7 calendar days</span></div>
+      <div class="adm-row"><span class="adm-lbl">Mid Overdue</span><span class="adm-val">8–15 calendar days</span></div>
+      <div class="adm-row"><span class="adm-lbl">Extended Overdue</span><span class="adm-val">16–30 calendar days</span></div>
+      <div class="adm-row"><span class="adm-lbl" style="color:var(--danger)">Critical</span><span class="adm-val">30+ calendar days</span></div>
+    </div>
+
+    <!-- Display Settings -->
+    <div class="adm-card">
+      <div class="adm-title">🖥 Display Settings</div>
+      <div class="adm-sub">Adjust table and dashboard behaviour</div>
+      <div class="adm-row"><span class="adm-lbl">Table rows per page</span>
+        <select class="fsel" id="rowsPerPage" onchange="renderAll()" style="font-size:11px;padding:3px 7px">
+          <option value="25" selected>25</option><option value="50">50</option><option value="100">100</option><option value="0">All</option>
+        </select>
+      </div>
+      <div class="adm-row"><span class="adm-lbl">Show aging column</span><label class="toggle-wrap"><input type="checkbox" id="tog-aging" checked onchange="renderAll()"><span class="tslider"></span></label></div>
+      <div class="adm-row"><span class="adm-lbl">Compact table rows</span><label class="toggle-wrap"><input type="checkbox" id="tog-compact" onchange="toggleCompact()"><span class="tslider"></span></label></div>
+      <div class="adm-row"><span class="adm-lbl">Highlight overdue rows</span><label class="toggle-wrap"><input type="checkbox" id="tog-highlight" checked onchange="renderAll()"><span class="tslider"></span></label></div>
+      <div class="adm-row"><span class="adm-lbl">Show alert banner</span><label class="toggle-wrap"><input type="checkbox" id="tog-banner" checked onchange="updateAlertBanner()"><span class="tslider"></span></label></div>
+    </div>
+
+    <!-- Data Info -->
+    <div class="adm-card">
+      <div class="adm-title">📊 Session Statistics</div>
+      <div class="adm-sub">Current session data summary</div>
+      <div class="adm-row"><span class="adm-lbl">Total Records</span><span class="adm-val" id="adm-total">0</span></div>
+      <div class="adm-row"><span class="adm-lbl">Overdue (calculated)</span><span class="adm-val" id="adm-overdue" style="color:var(--danger)">0</span></div>
+      <div class="adm-row"><span class="adm-lbl">Past Due Status</span><span class="adm-val" id="adm-pastdue" style="color:var(--pastdue)">0</span></div>
+      <div class="adm-row"><span class="adm-lbl">Session Changes</span><span class="adm-val" id="adm-changes">0</span></div>
+      <div class="adm-row"><span class="adm-lbl">Version</span><span class="adm-val">4.0.0</span></div>
+      <div class="adm-row"><span class="adm-lbl">Build</span><span class="adm-val">Production / SharePoint</span></div>
+    </div>
+
+    <!-- Expert Recommendations -->
+    <div class="adm-card" style="grid-column:span 2">
+      <div class="adm-title">💡 Expert Recommendations</div>
+      <div class="adm-sub">Operational best practices for AR management</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:4px">📌 Data Quality</div>
+          <div style="font-size:11px;color:var(--t2);line-height:1.7">
+            • Export fresh data from your AR system at least weekly<br>
+            • Use "Past Due" status for ARs requiring escalation — don't rely solely on aging calculations<br>
+            • Ensure Due Dates are populated for all active ARs<br>
+            • Reconcile "Completed" ARs monthly to maintain clean records
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:4px">⚡ Operational Workflow</div>
+          <div style="font-size:11px;color:var(--t2);line-height:1.7">
+            • Review "Due Today" queue every morning before 9am<br>
+            • Any AR 8+ days overdue should be manually set to "Past Due" status<br>
+            • Distribute workload using Owner Workload chart to prevent bottlenecks<br>
+            • Send weekly executive summary using the Reporting tab every Friday
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:4px">📁 SharePoint Deployment</div>
+          <div style="font-size:11px;color:var(--t2);line-height:1.7">
+            • Upload this HTML file to a SharePoint document library<br>
+            • Share the direct file URL with your team — no installation needed<br>
+            • Use browser bookmarks for quick daily access<br>
+            • Works fully offline once cached by browser
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:4px">📧 Reporting Cadence</div>
+          <div style="font-size:11px;color:var(--t2);line-height:1.7">
+            • Daily: Use "Due Today" report for morning standup<br>
+            • Weekly: Executive Summary report to leadership every Monday<br>
+            • Monthly: Full AR Listing report for records management<br>
+            • Ad-hoc: "Past Due &amp; Overdue" for escalation meetings
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<!-- ════════════════════════════════════════════════
+     TAB: MANUAL
+════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-manual">
+<div class="page">
+  <div class="page-title">📖 User Manual <span class="page-title-sub">Complete guide to AU-ARS · Action Request System</span></div>
+  <div class="manual-wrap">
+    <div class="man-nav">
+      <div class="man-nav-ttl">📖 Contents</div>
+      <div class="man-item active" onclick="manScroll('ms-overview',this)">🏠 Overview</div>
+      <div class="man-item" onclick="manScroll('ms-dashboard',this)">📊 Dashboard</div>
+      <div class="man-item" onclick="manScroll('ms-records',this)">📋 AR Records</div>
+      <div class="man-item" onclick="manScroll('ms-database',this)">🗄 Database Tab</div>
+      <div class="man-item" onclick="manScroll('ms-edit',this)">✏️ Editing Records</div>
+      <div class="man-item" onclick="manScroll('ms-status',this)">🏷 Status System</div>
+      <div class="man-item" onclick="manScroll('ms-aging',this)">⏱ Aging System</div>
+      <div class="man-item" onclick="manScroll('ms-reporting',this)">📧 Reporting</div>
+      <div class="man-item" onclick="manScroll('ms-admin',this)">⚙️ Admin</div>
+      <div class="man-item" onclick="manScroll('ms-shortcuts',this)">⌨️ Shortcuts</div>
+      <div class="man-item" onclick="manScroll('ms-deploy',this)">🏢 Deployment</div>
+      <div class="man-item" onclick="manScroll('ms-faq',this)">❓ FAQ</div>
+    </div>
+    <div class="man-body">
+
+      <div class="man-sec" id="ms-overview">
+        <div class="ms-ttl">🏠 Overview</div>
+        <div class="ms-sub">What is AU-ARS?</div>
+        <div class="ms-body">
+          <p>The <strong>AU-ARS · Action Request System</strong> is a standalone, browser-based operational dashboard for managing <strong>Action Requests (ARs)</strong>. It runs as a single HTML file with no server, installation, or internet connection required after initial load.</p>
+          <h4>Key Capabilities</h4>
+          <ul>
+            <li>Real-time day-based AR aging (Past Due / 1–3d / 4–7d / 8–15d / 16–30d / 30+d)</li>
+            <li>5 operational statuses including the new <strong>Past Due</strong> escalation status</li>
+            <li>Inline cell editing — click any field to edit immediately</li>
+            <li>Import from Excel (.xlsx/.xls) and CSV files via drag-and-drop</li>
+            <li>Priority queue showing critical items needing immediate action</li>
+            <li>Owner workload distribution chart</li>
+            <li>Report builder with email integration</li>
+            <li>7 professional themes including Light Corporate for office use</li>
+            <li>Fully SharePoint compatible — just upload the HTML file</li>
+          </ul>
+          <div class="tip-box">💡 <strong>Recommended for daily use:</strong> Open the Dashboard tab each morning. Review the alert banner and Priority Action queue. Address Due Today items first, then Past Due items.</div>
+          <h4>Tab Structure</h4>
+          <ul>
+            <li><strong>Dashboard</strong> — Operational command center: KPIs, priority queue, AR list, charts</li>
+            <li><strong>AR Records</strong> — Full table with all filtering, sorting, CRUD operations</li>
+            <li><strong>Database</strong> — Upload new data files, view statistics, export data</li>
+            <li><strong>Reporting</strong> — Generate and email operational reports</li>
+            <li><strong>Admin</strong> — Themes, settings, expert recommendations</li>
+            <li><strong>Manual</strong> — This guide</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="man-sec" id="ms-dashboard">
+        <div class="ms-ttl">📊 Dashboard Tab</div>
+        <div class="ms-sub">Operational command center</div>
+        <div class="ms-body">
+          <h4>Alert Banner</h4>
+          <p>A coloured banner appears at the top when there are critical items. Click it to jump directly to the AR Records tab. Red = critical (overdue ARs exist). Green = all clear.</p>
+          <h4>KPI Cards (8 total)</h4>
+          <p>Six clickable cards showing: Total ARs, Active, Past Due Status, On Hold, Overdue, and Due Today. <strong>Click any card</strong> to expand a filtered list of matching ARs directly below. Click the same card again to collapse. Cards update instantly with any data change.</p>
+          <h4>Priority Action Queue</h4>
+          <p>Shows ARs that require <strong>immediate attention today</strong> — specifically Due Today and items 8+ days overdue. This is your daily action checklist. Items are sorted by urgency.</p>
+          <h4>All AR Records (Dashboard View)</h4>
+          <p>A compact, paginated table showing all ARs directly on the dashboard. Use the status filter dropdown to quickly view just Active, Past Due, or Hold items without switching tabs.</p>
+          <h4>Sidebar Charts</h4>
+          <ul>
+            <li><strong>Aging Distribution</strong> — Horizontal bar chart showing count per aging bucket</li>
+            <li><strong>Status Breakdown</strong> — Donut chart of status distribution</li>
+            <li><strong>Owner Workload</strong> — Bar chart showing ARs per owner (with overdue count)</li>
+            <li><strong>Action Type Mix</strong> — Donut chart of AR categories</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="man-sec" id="ms-records">
+        <div class="ms-ttl">📋 AR Records Tab</div>
+        <div class="ms-sub">Full data management interface</div>
+        <div class="ms-body">
+          <h4>Search & Filters</h4>
+          <ul>
+            <li><strong>Search box</strong> — searches AR #, subject, owner, action type, and notes simultaneously</li>
+            <li><strong>Status filter</strong> — filter by Active / Past Due / Hold / Completed / Cancelled</li>
+            <li><strong>Aging filter</strong> — filter by specific aging bucket</li>
+            <li><strong>Owner filter</strong> — filter by assigned person or team</li>
+            <li><strong>↺ Reset</strong> — clears all active filters</li>
+          </ul>
+          <h4>Sorting</h4>
+          <p>Click any column header to sort. Click again to reverse. The ↕ symbol indicates sortable columns.</p>
+          <h4>Pagination</h4>
+          <p>Records are paginated (default 25 per page). Use the page controls at the bottom of the table. Change rows per page in Admin settings.</p>
+          <h4>Adding a New AR</h4>
+          <p>Click the <strong>＋ Add AR</strong> button to open the Add Record modal. AR # and Subject are required fields. All other fields are optional.</p>
+          <h4>Deleting</h4>
+          <p>Hover any row → click the red ✕ button → confirm deletion in the dialog.</p>
+        </div>
+      </div>
+
+      <div class="man-sec" id="ms-database">
+        <div class="ms-ttl">🗄 Database Tab</div>
+        <div class="ms-sub">Upload and manage AR data files</div>
+        <div class="ms-body">
+          <h4>Uploading a File</h4>
+          <ol>
+            <li>Go to the <strong>Database</strong> tab</li>
+            <li>Drag & drop your file onto the upload zone, or click to browse</li>
+            <li>Supported formats: <code>.xlsx</code>, <code>.xls</code>, <code>.csv</code></li>
+            <li>The importer auto-detects column names — no exact format required</li>
+            <li>Your existing session data is replaced immediately upon successful import</li>
+          </ol>
+          <div class="warn-box">⚠️ <strong>Important:</strong> Uploading replaces ALL current session data. Export first if you have unsaved edits you want to keep.</div>
+          <h4>Column Auto-Detection</h4>
+          <p>The importer scans column headers for keywords. See the column reference table in the Database tab for accepted names.</p>
+          <h4>Data Freshness</h4>
+          <p>If the uploaded data contains ARs with dates older than 90 days, a freshness warning will appear. This is informational only — aging still calculates correctly against today's date, but numbers may appear large due to old data.</p>
+          <h4>Exporting</h4>
+          <p>Use <strong>⬇ Export CSV</strong> to download your current session data (including all manual edits) as a CSV file. Use <strong>⬇ Export JSON</strong> for structured data exchange.</p>
+        </div>
+      </div>
+
+      <div class="man-sec" id="ms-edit">
+        <div class="ms-ttl">✏️ Editing Records</div>
+        <div class="ms-sub">Inline editing and full record editing</div>
+        <div class="ms-body">
+          <h4>Inline Cell Editing</h4>
+          <p>Click any highlighted cell value directly in the table to edit it:</p>
+          <ul>
+            <li><strong>Status badge</strong> — click to open a dropdown with all 5 statuses</li>
+            <li><strong>Due Date</strong> — click to open a date picker</li>
+            <li><strong>Action Type</strong> — click to type a new value</li>
+            <li><strong>Owner</strong> — click to type a new name or team</li>
+            <li><strong>Notes</strong> — click to edit the notes/reminders text</li>
+          </ul>
+          <div class="tip-box">💡 Press <kbd>Enter</kbd> to save an inline edit. Press <kbd>Esc</kbd> to cancel.</div>
+          <h4>Full Record Edit Modal</h4>
+          <p>Hover any row → click the ✎ (pencil) button → edit all fields at once in the modal popup.</p>
+          <h4>Setting Past Due Status</h4>
+          <p>When an AR has been delayed and requires escalation, click the Status badge → select <strong>Past Due</strong>. This is an explicit operational flag distinct from the automatic aging calculation.</p>
+          <h4>Live Data Sync</h4>
+          <p>All edits immediately update: Dashboard KPIs, Priority Queue, Charts, Aging calculations, and Report previews.</p>
+        </div>
+      </div>
+
+      <div class="man-sec" id="ms-status">
+        <div class="ms-ttl">🏷 Status System</div>
+        <div class="ms-sub">5-state operational status model</div>
+        <div class="ms-body">
+          <h4>Status Definitions</h4>
+          <ul>
+            <li><strong style="color:var(--success)">Active</strong> — AR is open, being worked, and not yet considered past due by the team</li>
+            <li><strong style="color:var(--pastdue)">Past Due</strong> — AR has been explicitly flagged as overdue/escalated by the team. This is a <em>manual</em> status change, not automatic. Use this when an AR has missed its deadline and requires immediate attention.</li>
+            <li><strong style="color:var(--purple)">Hold</strong> — AR is paused awaiting direction, approval, or additional information. Not included in overdue calculations.</li>
+            <li><strong style="color:var(--primary)">Completed</strong> — AR has been finished and signed off. Excluded from aging calculations.</li>
+            <li><strong style="color:var(--t3)">Cancelled</strong> — AR has been withdrawn and is no longer required.</li>
+          </ul>
+          <div class="tip-box">💡 <strong>Difference between "Past Due" status and aging:</strong><br>
+          <strong>Aging</strong> is calculated automatically (days since due date). It tells you <em>how long</em> something has been overdue.<br>
+          <strong>Past Due status</strong> is set manually by your team. It signals <em>operational escalation</em> — this AR needs someone to act on it now.</div>
+        </div>
+      </div>
+
+      <div class="man-sec" id="ms-aging">
+        <div class="ms-ttl">⏱ Aging System</div>
+        <div class="ms-sub">Day-based real-time aging calculation</div>
+        <div class="ms-body">
+          <h4>How Aging is Calculated</h4>
+          <p>Aging = Today's date − Due Date (in calendar days). Calculated fresh on every page render.</p>
+          <h4>Aging Buckets</h4>
+          <ul>
+            <li><strong>Upcoming</strong> — Due date is in the future (negative days)</li>
+            <li><strong>Due Today</strong> — Due date = today (0 days)</li>
+            <li><strong>1–3 Days</strong> — Mildly overdue</li>
+            <li><strong>4–7 Days</strong> — Moderately overdue</li>
+            <li><strong>8–15 Days</strong> — Significantly overdue</li>
+            <li><strong>16–30 Days</strong> — Seriously overdue</li>
+            <li><strong>30+ Days</strong> — Critical backlog</li>
+          </ul>
+          <div class="tip-box">💡 Hold, Completed, and Cancelled records are <strong>excluded</strong> from aging calculations. Only Active and Past Due records are aged.</div>
+        </div>
+      </div>
+
+      <div class="man-sec" id="ms-reporting">
+        <div class="ms-ttl">📧 Reporting</div>
+        <div class="ms-sub">Generate and distribute operational reports</div>
+        <div class="ms-body">
+          <h4>Report Types</h4>
+          <ul>
+            <li><strong>Executive Summary</strong> — KPI overview with overdue highlights. For leadership.</li>
+            <li><strong>Past Due & Overdue ARs</strong> — Full list of all escalated/overdue items. For action meetings.</li>
+            <li><strong>Full AR Listing</strong> — Every record with all fields. For compliance/records.</li>
+            <li><strong>By Owner / Assigned</strong> — Records grouped by assignee. For workload review.</li>
+            <li><strong>Aging Breakdown</strong> — Counts by aging bucket. For trend analysis.</li>
+            <li><strong>Due Today</strong> — Just today's items. For daily standup.</li>
+          </ul>
+          <h4>Sending via Email</h4>
+          <ol>
+            <li>Generate the report using ⚡ Generate</li>
+            <li>Enter recipient email, optional CC, and subject line</li>
+            <li>Click ✉️ Open in Mail — your default email client opens with the report in the body</li>
+            <li>Review and send from your email client</li>
+          </ol>
+          <div class="tip-box">💡 Use 📋 Copy to paste the report into Teams, Outlook email, or any other communication channel.</div>
+        </div>
+      </div>
+
+      <div class="man-sec" id="ms-admin">
+        <div class="ms-ttl">⚙️ Admin Settings</div>
+        <div class="ms-sub">Configure dashboard behaviour</div>
+        <div class="ms-body">
+          <h4>Display Settings</h4>
+          <ul>
+            <li><strong>Rows per page</strong> — 25 / 50 / 100 / All</li>
+            <li><strong>Show aging column</strong> — Toggle aging pill column on/off</li>
+            <li><strong>Compact table rows</strong> — Reduce row height for denser view</li>
+            <li><strong>Highlight overdue rows</strong> — Add background tint to overdue rows</li>
+            <li><strong>Show alert banner</strong> — Toggle the top alert strip on/off</li>
+          </ul>
+          <h4>Expert Recommendations Panel</h4>
+          <p>The Admin tab includes expert operational recommendations covering data quality, workflow, deployment, and reporting cadence.</p>
+        </div>
+      </div>
+
+      <div class="man-sec" id="ms-shortcuts">
+        <div class="ms-ttl">⌨️ Keyboard Shortcuts</div>
+        <div class="ms-sub">Speed up daily operations</div>
+        <div class="ms-body">
+          <table class="key-table">
+            <tr><td>Open Add AR modal</td><td><kbd>Ctrl</kbd>+<kbd>N</kbd></td></tr>
+            <tr><td>Export CSV</td><td><kbd>Ctrl</kbd>+<kbd>E</kbd></td></tr>
+            <tr><td>Focus search box</td><td><kbd>Ctrl</kbd>+<kbd>F</kbd></td></tr>
+            <tr><td>Close modal / cancel edit</td><td><kbd>Esc</kbd></td></tr>
+            <tr><td>Save inline edit</td><td><kbd>Enter</kbd></td></tr>
+            <tr><td>Dashboard tab</td><td><kbd>Alt</kbd>+<kbd>1</kbd></td></tr>
+            <tr><td>AR Records tab</td><td><kbd>Alt</kbd>+<kbd>2</kbd></td></tr>
+            <tr><td>Database tab</td><td><kbd>Alt</kbd>+<kbd>3</kbd></td></tr>
+            <tr><td>Reporting tab</td><td><kbd>Alt</kbd>+<kbd>4</kbd></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="man-sec" id="ms-deploy">
+        <div class="ms-ttl">🏢 Deployment</div>
+        <div class="ms-sub">Getting this dashboard into your office environment</div>
+        <div class="ms-body">
+          <h4>SharePoint Deployment (Recommended)</h4>
+          <ol>
+            <li>Save the <code>GTM_AR_TRACKER_v4.html</code> file to your computer</li>
+            <li>Open SharePoint → navigate to your team's document library</li>
+            <li>Upload the HTML file to the library</li>
+            <li>Right-click the file → Copy link</li>
+            <li>Share the link with your team — they can open it directly in their browser</li>
+            <li>Pin the link as a bookmark or Teams tab for easy daily access</li>
+          </ol>
+          <div class="tip-box">💡 SharePoint will serve the HTML file directly. No special permissions or web parts needed. Works in Edge, Chrome, Firefox, and Safari.</div>
+          <h4>Network Drive / Shared Folder</h4>
+          <ol>
+            <li>Save the HTML file to your shared network drive</li>
+            <li>Users open it directly in their browser from the file path</li>
+            <li>Works offline once the file is accessed</li>
+          </ol>
+          <h4>Teams Integration</h4>
+          <ol>
+            <li>Upload to SharePoint as above</li>
+            <li>In Microsoft Teams → click + to add a tab → choose Website</li>
+            <li>Paste the SharePoint direct file URL</li>
+            <li>Team members can access the dashboard from within Teams</li>
+          </ol>
+          <div class="warn-box">⚠️ <strong>Session data only:</strong> All edits are browser-session based. Always export data using ⬇ Export CSV before closing the browser if you want to preserve edits.</div>
+          <h4>Browser Compatibility</h4>
+          <p>Tested and working in: Microsoft Edge (recommended for government), Google Chrome, Mozilla Firefox, Apple Safari. Internet Explorer is not supported.</p>
+        </div>
+      </div>
+
+      <div class="man-sec" id="ms-faq">
+        <div class="ms-ttl">❓ FAQ</div>
+        <div class="ms-sub">Common questions</div>
+        <div class="ms-body">
+          <h4>Why do I see huge aging numbers like +500 days?</h4>
+          <p>The seed data contains AR records from 2023. Aging is always calculated vs today's date. When you upload your actual current data from your AR system, the numbers will reflect real operational aging.</p>
+          <h4>What's the difference between "Past Due" status and the aging calculation?</h4>
+          <p>Aging is automatic (days past due date). "Past Due" is a manual status your team sets to signal escalation. Both serve different purposes — aging gives you the timeline, Past Due status triggers priority treatment.</p>
+          <h4>Will my changes be saved if I close the browser?</h4>
+          <p>No — all edits are session-based only. Use Database → Export CSV to save your work before closing.</p>
+          <h4>Can multiple people use this at the same time?</h4>
+          <p>Yes — but each person has their own independent session. Edits are not shared between users in real time. For shared editing, each user should start from the same exported CSV file.</p>
+          <h4>Can I add this to my SharePoint intranet page?</h4>
+          <p>Yes. Upload the file to a document library and share the direct link. You can also embed it in a SharePoint page using the Embed web part with the file URL.</p>
+          <h4>How do I update the dashboard with new data?</h4>
+          <p>Go to Database tab → drag and drop your new file → data replaces immediately. No re-download needed.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div></div>
+
+<!-- ════════════════════════════════════════════════
+     ADD / EDIT MODAL
+════════════════════════════════════════════════ -->
+<div class="overlay" id="arModal">
+  <div class="modal">
+    <div class="m-hd">
+      <div class="m-title" id="modalTitle">Add New AR</div>
+      <div class="m-x" onclick="closeModal()">✕</div>
+    </div>
+    <div class="fg2">
+      <div><label class="flbl">AR Number *</label><input class="finp" id="f-ar" type="number" placeholder="e.g. 3400"></div>
+      <div><label class="flbl">Status</label>
+        <select class="fsel" id="f-status">
+          <option value="Active">Active</option>
+          <option value="Past Due">Past Due</option>
+          <option value="Hold">Hold</option>
+          <option value="Completed">Completed</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+      </div>
+      <div class="fg-full"><label class="flbl">Subject / Description *</label><input class="finp" id="f-subject" placeholder="SOLICITED: …"></div>
+      <div><label class="flbl">Received Date</label><input class="finp" id="f-recd" type="date"></div>
+      <div><label class="flbl">Due Date</label><input class="finp" id="f-due" type="date"></div>
+      <div><label class="flbl">Owner / Assigned To</label><input class="finp" id="f-owner" placeholder="Name or Team"></div>
+      <div><label class="flbl">Action Type</label><input class="finp" id="f-action" placeholder="e.g. Draft Response for AU Minister"></div>
+      <div class="fg-full"><label class="flbl">Notes / Reminders</label><textarea class="fta" id="f-reminders" placeholder="Notes, instructions, follow-up details…"></textarea></div>
+    </div>
+    <div class="m-ft">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveRecord()">💾 Save Record</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM -->
+<div class="overlay" id="confirmOverlay">
+  <div class="confirm-wrap">
+    <div class="conf-icon">🗑️</div>
+    <div class="conf-ttl">Delete Record?</div>
+    <div class="conf-msg">This will permanently remove the AR from this session. Export first if you need to preserve it.</div>
+    <div class="conf-btns">
+      <button class="btn btn-ghost" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-danger" id="confirmDelBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<!-- ════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════ -->
+<script>
+// ═══════════════════════════════════
+// SEED DATA (28 records from upload)
+// ═══════════════════════════════════
+const SEED = [
+  {id:1,ar:56,subject:"SOLICITED: Info BN for Minister - Reliable Clean Electricity Program Options",status:"Hold",recd:"2023-07-07",due:"2023-08-23",action:"Info BN for AU Minister",owner:"Genevieve Robosa",reminders:"Random Comment 1"},
+  {id:2,ar:121,subject:"SOLICITED: Draft Response for Minister - Electricity Prices",status:"Past Due",recd:"2023-07-20",due:"2023-08-03",action:"Draft Response for AU Minister",owner:"Olayinka Williams",reminders:""},
+  {id:3,ar:127,subject:"UNSOLICITED: Info BN for DM - Background on utility services for remote communities",status:"Active",recd:"2023-07-20",due:"",action:"Info BN for AU DM",owner:"UT Generation, Transmission & Markets",reminders:""},
+  {id:4,ar:160,subject:"SOLICITED: Draft Response for Minister - Why AESO need to acquire another parallel software platform",status:"Active",recd:"2023-07-25",due:"2023-08-11",action:"Draft Response for AU Minister",owner:"Betsy Li Alward",reminders:""},
+  {id:5,ar:217,subject:"SOLICITED - AFC/CABINET – Recommendations to Address the Regulated Rate Option",status:"Active",recd:"2023-07-31",due:"2023-09-26",action:"Cabinet Package",owner:"Courtney McQueen",reminders:""},
+  {id:6,ar:309,subject:"SOLICITED: TAR - Caylee Campbell called regarding concern re- pause on renewable energy ACCTS:00150009437",status:"Past Due",recd:"2023-08-08",due:"2023-08-14",action:"Telephone Action Request",owner:"UT Generation, Transmission & Markets",reminders:""},
+  {id:7,ar:588,subject:"SOLICITED: Draft Response for Minister - Town of Elk Point - Askiy Hemp Processing Plant",status:"Active",recd:"2023-08-24",due:"2023-09-27",action:"Draft Response for AU Minister",owner:"UT Generation, Transmission & Markets",reminders:""},
+  {id:8,ar:617,subject:"SOLICITED - Draft Response For Minister - AUC Pause and Inquiry",status:"Active",recd:"2023-08-28",due:"2023-09-12",action:"Draft Response for AU Minister",owner:"Solomon Ezike",reminders:""},
+  {id:9,ar:818,subject:"SOLICITED: Info BN for MLA and Draft Response for MLA - Why Power rates have risen so high in the province",status:"Active",recd:"2023-09-05",due:"2023-10-13",action:"Draft Response for AU Minister",owner:"Betsy Li Alward",reminders:""},
+  {id:10,ar:1068,subject:"UNSOLICITED: Info BN for DM - For the AWO regarding MATL",status:"Active",recd:"2023-09-22",due:"2023-10-13",action:"Info BN for AU DM",owner:"Betsy Li Alward",reminders:""},
+  {id:11,ar:3200,subject:"SOLICITED: Meeting BN for Minister - Meeting with Randolph Seibold - Hyfi Corp",status:"Active",recd:"2023-09-26",due:"2023-11-03",action:"Meeting BN for Minister",owner:"Marc Baxter",reminders:""},
+  {id:12,ar:3210,subject:"SOLICITED: BN for Minister – CETO and CIB Funding",status:"Active",recd:"2023-09-27",due:"2023-10-12",action:"Info BN for AU Minister",owner:"Betsy Li Alward",reminders:""},
+  {id:13,ar:3214,subject:"SOLICITED: Meeting BN for Minister - Mtg with Tim Davis CEO - Energy and application process",status:"Active",recd:"2023-09-27",due:"2023-10-12",action:"Meeting BN for AU Minister",owner:"Samar Kauser",reminders:""},
+  {id:14,ar:3232,subject:"SOLICITED: Info BN for ADM – Drafting Instructions for LCO for RRO Regulation amendments",status:"Active",recd:"2023-09-28",due:"2023-11-01",action:"Info BN for ADM/Division or Branch",owner:"Courtney McQueen",reminders:""},
+  {id:15,ar:3312,subject:"SOLICITED: TAR - The Bakers emailed regarding solar/turbine power projects",status:"Active",recd:"2023-10-12",due:"2023-10-26",action:"Draft Response for AU Minister",owner:"Vinson Banh",reminders:""},
+  {id:16,ar:3320,subject:"SOLICITED: Meeting Recommendation and BN - Mtg with CEO to Discuss MYTILINEOS Investment",status:"Active",recd:"2023-10-13",due:"2023-10-27",action:"Meeting BN for AU Minister",owner:"Betsy Li Alward",reminders:""},
+  {id:17,ar:3322,subject:"SOLICITED: Meeting Recommendation for Minister - Small Modular Reactor Development - Birch Hills County",status:"Active",recd:"2023-10-13",due:"2023-10-27",action:"Meeting Recommendation for AU Minister",owner:"Vinson Banh",reminders:""},
+  {id:18,ar:3326,subject:"SOLICITED: Mtg BN for Minister - Premier speaking at Pembina Institute Conference",status:"Active",recd:"2023-10-13",due:"2023-10-24",action:"Meeting BN for AU Minister",owner:"UT Generation, Transmission & Markets",reminders:""},
+  {id:19,ar:3327,subject:"SOLICITED: TAR - Rob Strong called asking How federal govt. is responsible for power in Alberta",status:"Active",recd:"2023-10-13",due:"2023-10-20",action:"Telephone Action Request",owner:"UT Generation, Transmission & Markets",reminders:""},
+  {id:20,ar:3330,subject:"SOLICITED: Meeting BN for Minister - Dr. Hickson CEO - No 1 Geothermal Limited Partnership",status:"Active",recd:"2023-10-13",due:"2023-11-13",action:"Meeting BN for AU Minister",owner:"Vinson Banh",reminders:""},
+  {id:21,ar:3338,subject:"SOLICITED: Draft response for Minister - Solar Double standards",status:"Active",recd:"2023-10-16",due:"2023-10-30",action:"Draft Response for AU Minister",owner:"UT Generation, Transmission & Markets",reminders:""},
+  {id:22,ar:3339,subject:"SOLICITED: Meeting BN for Minister - Mtg with ARC regarding electrification of ARC Alberta operations",status:"Active",recd:"2023-10-16",due:"2023-10-30",action:"Meeting BN for AU Minister",owner:"Genevieve Robosa",reminders:""},
+  {id:23,ar:3344,subject:"SOLICITED – BN for Minister – Solar and Battery Incentives for Small Businesses",status:"Active",recd:"2023-10-17",due:"2023-10-31",action:"Info BN for AU Minister",owner:"Samar Kauser",reminders:""},
+  {id:24,ar:3346,subject:"SOLICITED: Meeting Recommendation for Minister - BECCS for Affordable Electricity and Carbon Removal Exports",status:"Active",recd:"2023-10-17",due:"2023-10-31",action:"Meeting Recommendation for AU Minister",owner:"Vinson Banh",reminders:""},
+  {id:25,ar:3347,subject:"SOLICITED - Tech Input for BN – COP28 – Fact Sheet on Coal Transition",status:"Active",recd:"2023-10-17",due:"2023-10-25",action:"Tech Input for Briefings",owner:"UT Generation, Transmission & Markets",reminders:""},
+  {id:26,ar:3358,subject:"SOLICITED: Draft response for MLA - ICF report impacts of CER reaching net-zero by 2035 in Alberta",status:"Active",recd:"2023-10-19",due:"2023-11-02",action:"Draft Response for AU Minister",owner:"Marc Baxter",reminders:""},
+  {id:27,ar:3360,subject:"SOLICITED: Draft Response for Minister - Renewable Impact on Communities ACCTS:00150010827",status:"Active",recd:"2023-10-19",due:"2023-11-02",action:"Draft Response for AU Minister",owner:"Genevieve Robosa",reminders:""},
+  {id:28,ar:3361,subject:"SOLICITED: TAR - Dan Fisher - call the feds campaign on federal clean electricity regulation",status:"Past Due",recd:"2023-10-19",due:"2023-10-24",action:"Telephone Action Request",owner:"Marc Baxter",reminders:""}
+];
+
+// ═══════════════════════════════════
+// STATE
+// ═══════════════════════════════════
+let arData = [];
+let editingId = null;
+let deleteId = null;
+let sessionChanges = 0;
+let nextId = 200;
+let sortState = { col:'ar', asc:true };
+let dashSortState = { col:'aging', asc:false };
+let currentPage = { full:1, dash:1 };
+let statusChart, actionChart;
+let currentTheme = 'corporate';
+
+// ═══════════════════════════════════
+// AGING UTILS
+// ═══════════════════════════════════
+const AGING_ORDER = ['future','due-today','1-3','4-7','8-15','16-30','30plus'];
+const AGING_LABELS = {future:'Upcoming','due-today':'Due Today','1-3':'1–3 Days Past Due','4-7':'4–7 Days Past Due','8-15':'8–15 Days Past Due','16-30':'16–30 Days Past Due','30plus':'30+ Days Past Due',na:'N/A'};
+const AGING_SHORT  = {future:'Upcoming','due-today':'Today','1-3':'1–3d','4-7':'4–7d','8-15':'8–15d','16-30':'16–30d','30plus':'30+d'};
+const AGING_COLORS = {future:'#3d8ef5','due-today':'#f59e0b','1-3':'#f87171','4-7':'#ef4444','8-15':'#dc2626','16-30':'#b91c1c','30plus':'#7f1d1d'};
+
+// ── REVIEW GROUP OWNERS ─────────────────────────────────────────
+// Configurable: edit these arrays to change who appears in each review tab
+const ED_OWNERS       = ['UT Generation, Transmission & Markets'];
+const DIRECTOR_OWNERS = ['Sandy Lee', 'Betsy Li Alward', 'Robert Hendren'];
+// Managers: all owners NOT in ED or Director lists (auto-populated)
+function getManagerOwners() {
+  const excluded = [...ED_OWNERS, ...DIRECTOR_OWNERS];
+  const all = [...new Set(arData.map(r => (r.owner||'').split('\n')[0].trim()))];
+  return all.filter(o => o && !excluded.some(ex => o.includes(ex)));
+}
+function ownerMatch(r, ownerList) {
+  const o = (r.owner||'').toLowerCase();
+  return ownerList.some(n => o.includes(n.toLowerCase()));
+}
+
+function calcDays(due, status) {
+  if (!due || ['Hold','Completed','Cancelled'].includes(status)) return null;
+  const d = new Date(due); if (isNaN(d)) return null;
+  const t = new Date(); t.setHours(0,0,0,0); d.setHours(0,0,0,0);
+  return Math.floor((t-d)/86400000);
+}
+function agingCat(days) {
+  if (days===null) return 'na';
+  if (days<0) return 'future';
+  if (days===0) return 'due-today';
+  if (days<=3) return '1-3';
+  if (days<=7) return '4-7';
+  if (days<=15) return '8-15';
+  if (days<=30) return '16-30';
+  return '30plus';
+}
+function agingPill(days, status) {
+  if (['Hold','Completed'].includes(status)) return `<span class="ap ap-hold">${status === 'Hold' ? 'HOLD' : 'DONE'}</span>`;
+  if (status === 'Cancelled') return `<span class="ap" style="color:var(--t3)">CANCELLED</span>`;
+  if (status === 'Past Due') return `<span class="ap ap-pastdue">PAST DUE</span>`;
+  if (days===null) return `<span class="ap" style="color:var(--t3)">—</span>`;
+  const cat = agingCat(days);
+  const classMap = {future:'ap-future','due-today':'ap-today','1-3':'ap-1-3','4-7':'ap-4-7','8-15':'ap-8-15','16-30':'ap-16-30','30plus':'ap-30p'};
+  const lbl = days<0 ? `${Math.abs(days)}d left` : days===0 ? 'TODAY' : `+${days}d`;
+  return `<span class="ap ${classMap[cat]}">${lbl}</span>`;
+}
+const STATUS_CLS = {Active:'b-active','Past Due':'b-pastdue',Hold:'b-hold',Completed:'b-completed',Cancelled:'b-cancelled'};
+function statusBadge(status, id) {
+  return `<span class="badge ${STATUS_CLS[status]||'b-active'}" onclick="qEditStatus(${id},this)" title="Click to change status">${status}</span>`;
+}
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
+
+// ═══════════════════════════════════
+// INIT
+// ═══════════════════════════════════
+function init() {
+  // Load SEED immediately so screen is never blank; cloud pull overwrites with real team data
+  arData = JSON.parse(JSON.stringify(SEED));
+  nextId = Math.max(0,...arData.map(r=>r.id||0)) + 100;
+  initCharts();
+  renderAll();
+  setupUpload();
+  setupTabs();
+  setupFilters();
+  startClock();
+  document.getElementById('dash-status-filter').addEventListener('change', () => { currentPage.dash=1; renderDashTable(); });
+}
+
+// ═══════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════
+function startClock() {
+  const tick = () => {
+    const n = new Date();
+    const d = n.toLocaleDateString('en-CA',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+    const t = n.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('clock-display').textContent = `${d} · ${t}`;
+  };
+  tick(); setInterval(tick,30000);
+}
+
+// ═══════════════════════════════════
+// TABS
+// ═══════════════════════════════════
+function setupTabs() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      switchToTab(btn.dataset.tab);
+    });
+  });
+}
+function switchToTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-'+name));
+}
+
+// ═══════════════════════════════════
+// THEME
+// ═══════════════════════════════════
+function toggleThemeDD() { document.getElementById('themeDD').classList.toggle('open'); }
+document.addEventListener('click', e => { if(!e.target.closest('.theme-wrap')) document.getElementById('themeDD').classList.remove('open'); });
+function setTheme(t, name) {
+  currentTheme = t;
+  document.body.setAttribute('data-theme', t);
+  document.getElementById('themeLabel').textContent = name;
+  document.getElementById('themeDD').classList.remove('open');
+  // Update dropdown items
+  document.querySelectorAll('.theme-item').forEach(i => i.classList.toggle('active', i.dataset.t === t));
+  // Update rich admin cards
+  document.querySelectorAll('.th-card').forEach(card => {
+    const isActive = card.dataset.th === t;
+    card.classList.toggle('selected', isActive);
+    const badge = card.querySelector('.th-active-badge');
+    if (badge) badge.style.display = isActive ? 'inline-block' : 'none';
+  });
+  // Set active badge on matching card
+  const activeCard = document.querySelector(`.th-card[data-th="${t}"]`);
+  if (activeCard) {
+    const badge = activeCard.querySelector('.th-active-badge');
+    if (badge) badge.style.display = 'inline-block';
+  }
+  setTimeout(() => { destroyCharts(); initCharts(); updateCharts(); }, 60);
+  toast(`🎨 Theme: ${name}`, 'info');
+}
+
+// ═══════════════════════════════════
+// RENDER ALL
+// ═══════════════════════════════════
+function renderAll() {
+  // If a KPI panel is open, refresh its contents too
+  if (activeKpi) {
+    ['kpi-panel-row1','kpi-panel-row2'].forEach(id => { document.getElementById(id).style.display='none'; });
+    document.querySelectorAll('.kpi-clickable').forEach(k => k.classList.remove('active-kpi'));
+    const prev = activeKpi; activeKpi = null;
+    setTimeout(() => toggleKpiPanel(prev), 50); // reopen with fresh data
+  }
+  updateKPIs();
+  updateCharts();
+  updateAlertBanner();
+  renderPriorityQueue();
+  renderDashTable();
+  renderFullTable();
+  updateOwnerFilter();
+  updateAdminStats();
+  updateDBStats();
+  checkDataFreshness();
+  document.getElementById('tnum-records').textContent = arData.length;
+  document.getElementById('tnum-records').classList.toggle('has-data', arData.length > 0);
+}
+
+// ═══════════════════════════════════
+// KPIs
+// ═══════════════════════════════════
+function updateKPIs() {
+  const overdue = arData.filter(r => { const d=calcDays(r.due,r.status); return d!==null && d>0; }).length;
+  const today   = arData.filter(r => calcDays(r.due,r.status)===0).length;
+  const pastDue = arData.filter(r => r.status==='Past Due').length;
+  const hold    = arData.filter(r => r.status==='Hold').length;
+  const active  = arData.filter(r => r.status==='Active').length;
+  const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+  set('k-total', arData.length);
+  set('k-active', active);
+  set('k-pastdue', pastDue);
+  set('k-hold', hold);
+  set('k-overdue', overdue);
+  set('k-today', today);
+  // Review group counts
+  set('k-ed',        arData.filter(r => ownerMatch(r, ED_OWNERS)).length);
+  set('k-directors', arData.filter(r => ownerMatch(r, DIRECTOR_OWNERS)).length);
+  set('k-managers',  arData.filter(r => ownerMatch(r, getManagerOwners())).length);
+}
+
+// ── KPI PANEL: click a card → filtered list expands below that row ──
+let activeKpi = null;
+function toggleKpiPanel(type) {
+  // Determine which panel (row1 = all/active/pastdue, row2 = hold/overdue/today)
+  const row1Types = ['all','active','pastdue'];
+  const row3Types = ['ed','directors','managers'];
+  const panelId = row1Types.includes(type) ? 'kpi-panel-row1'
+                : row3Types.includes(type) ? 'kpi-panel-row3'
+                : 'kpi-panel-row2';
+  const panel = document.getElementById(panelId);
+
+  // If clicking same card, collapse
+  if (activeKpi === type) {
+    panel.style.display = 'none';
+    activeKpi = null;
+    document.querySelectorAll('.kpi-clickable').forEach(k => k.classList.remove('active-kpi'));
+    return;
+  }
+
+  // Close all panels first
+  ['kpi-panel-row1','kpi-panel-row2','kpi-panel-row3'].forEach(id => { document.getElementById(id).style.display='none'; });
+  document.querySelectorAll('.kpi-clickable').forEach(k => k.classList.remove('active-kpi'));
+  activeKpi = type;
+
+  // Mark active card
+  document.querySelectorAll('.kpi-clickable').forEach(k => { if(k.dataset.kpi===type) k.classList.add('active-kpi'); });
+
+  // Get filtered data
+  let filtered = [];
+  let title = '';
+  let emptyMsg = '';
+
+  if (type === 'all') {
+    filtered = [...arData].sort((a,b) => (calcDays(b.due,b.status)??-999) - (calcDays(a.due,a.status)??-999));
+    title = `All AR Records (${filtered.length})`;
+    emptyMsg = 'No records loaded';
+  } else if (type === 'active') {
+    filtered = arData.filter(r => r.status === 'Active').sort((a,b) => (calcDays(b.due,b.status)??-999) - (calcDays(a.due,a.status)??-999));
+    title = `Active ARs (${filtered.length})`;
+    emptyMsg = 'No active ARs';
+  } else if (type === 'pastdue') {
+    filtered = arData.filter(r => r.status === 'Past Due').sort((a,b) => (calcDays(b.due,b.status)??-999) - (calcDays(a.due,a.status)??-999));
+    title = `Past Due Status ARs (${filtered.length})`;
+    emptyMsg = 'No ARs with Past Due status';
+  } else if (type === 'hold') {
+    filtered = arData.filter(r => r.status === 'Hold');
+    title = `On Hold ARs (${filtered.length})`;
+    emptyMsg = 'No ARs on hold';
+  } else if (type === 'overdue') {
+    filtered = arData.filter(r => { const d=calcDays(r.due,r.status); return d!==null && d>0; }).sort((a,b) => (calcDays(b.due,b.status)??0) - (calcDays(a.due,a.status)??0));
+    title = `Overdue ARs (${filtered.length}) — sorted by most overdue`;
+    emptyMsg = '✅ No overdue ARs — great work!';
+  } else if (type === 'today') {
+    filtered = arData.filter(r => calcDays(r.due,r.status) === 0);
+    title = `Due Today (${filtered.length}) — action required`;
+    emptyMsg = '✅ Nothing due today';
+
+  // ── Review tabs ──
+  } else if (type === 'ed') {
+    filtered = arData.filter(r => ownerMatch(r, ED_OWNERS))
+                     .sort((a,b) => (calcDays(b.due,b.status)??-999) - (calcDays(a.due,a.status)??-999));
+    title = `ED Review — UT Generation, T&M (${filtered.length} ARs)`;
+    emptyMsg = '✅ No ARs currently assigned to UT Generation, Transmission & Markets';
+  } else if (type === 'directors') {
+    filtered = arData.filter(r => ownerMatch(r, DIRECTOR_OWNERS))
+                     .sort((a,b) => (calcDays(b.due,b.status)??-999) - (calcDays(a.due,a.status)??-999));
+    title = `Directors Review — ${DIRECTOR_OWNERS.join(', ')} (${filtered.length} ARs)`;
+    emptyMsg = '✅ No ARs currently assigned to Directors';
+  } else if (type === 'managers') {
+    const mgrs = getManagerOwners();
+    filtered = arData.filter(r => ownerMatch(r, mgrs))
+                     .sort((a,b) => (calcDays(b.due,b.status)??-999) - (calcDays(a.due,a.status)??-999));
+    title = `Managers Review (${filtered.length} ARs)`;
+    emptyMsg = '✅ No ARs assigned to other staff';
+  }
+
+  // Build panel HTML
+  const rows = filtered.length === 0
+    ? `<div class="kpi-panel-empty">${emptyMsg}</div>`
+    : filtered.map(r => {
+        const d = calcDays(r.due, r.status);
+        const shortOwner = (r.owner||'—').split('\n')[0].slice(0,28);
+        const shortSubj = r.subject.length > 62 ? r.subject.slice(0,60)+'…' : r.subject;
+        // For review tabs, show owner with a coloured tag
+        const reviewTypes = ['ed','directors','managers'];
+        const ownerTag = reviewTypes.includes(type)
+          ? `<span style="font-size:9px;background:var(--pri-bg);color:var(--primary);border:1px solid var(--pri-b);border-radius:4px;padding:1px 5px;font-weight:700">${esc(shortOwner)}</span>`
+          : `<span class="kp-owner">${esc(shortOwner)}</span>`;
+        return `<div class="kpi-panel-item" ondblclick="openEdit(${r.id})">
+          <span class="kp-ar">#${r.ar}</span>
+          <span class="kp-subj" title="${esc(r.subject)}">${esc(shortSubj)}</span>
+          ${ownerTag}
+          <span class="kp-due">${r.due||'—'}</span>
+          <span>${agingPill(d,r.status)}</span>
+        </div>`;
+      }).join('');
+
+  panel.innerHTML = `
+    <div class="kpi-panel-hd">
+      <span class="kpi-panel-title">📋 ${title}</span>
+      <button class="kpi-panel-close" onclick="toggleKpiPanel('${type}')">✕ close</button>
+    </div>
+    <div class="kpi-panel-list">${rows}</div>`;
+  panel.style.display = 'block';
+}
+
+// ═══════════════════════════════════
+// ALERT BANNER
+// ═══════════════════════════════════
+function updateAlertBanner() {
+  const banner = document.getElementById('alertBanner');
+  if (!document.getElementById('tog-banner')?.checked) { banner.style.display='none'; return; }
+  const overdue = arData.filter(r => { const d=calcDays(r.due,r.status); return d!==null && d>0; }).length;
+  const pastDue = arData.filter(r => r.status==='Past Due').length;
+  const today   = arData.filter(r => calcDays(r.due,r.status)===0).length;
+  banner.style.display = 'flex';
+  if (overdue > 0 || pastDue > 0) {
+    banner.className = 'alert-banner critical';
+    banner.innerHTML = `<span class="alert-icon">🚨</span> <strong>${overdue} overdue AR${overdue!==1?'s':''}</strong>${pastDue>0?' · '+pastDue+' Past Due status':''} — Click to review records <button class="alert-dismiss" onclick="event.stopPropagation();this.closest('.alert-banner').style.display='none'">✕</button>`;
+  } else if (today > 0) {
+    banner.className = 'alert-banner warn';
+    banner.innerHTML = `<span class="alert-icon">⏰</span> <strong>${today} AR${today!==1?'s':''} due today</strong> — Action required <button class="alert-dismiss" onclick="event.stopPropagation();this.closest('.alert-banner').style.display='none'">✕</button>`;
+  } else {
+    banner.className = 'alert-banner ok';
+    banner.innerHTML = `<span class="alert-icon">✅</span> All clear — no overdue ARs today`;
+  }
+}
+
+// ═══════════════════════════════════
+// PRIORITY QUEUE
+// ═══════════════════════════════════
+function renderPriorityQueue() {
+  const items = arData.filter(r => {
+    if (['Hold','Completed','Cancelled'].includes(r.status)) return false;
+    const d = calcDays(r.due, r.status);
+    return r.status==='Past Due' || d===0 || (d!==null && d>=8);
+  }).sort((a,b) => {
+    const da = calcDays(a.due,a.status)??-999;
+    const db = calcDays(b.due,b.status)??-999;
+    return db - da;
+  }).slice(0,10);
+
+  document.getElementById('pl-count').textContent = items.length + ' items';
+  const container = document.getElementById('priorityItems');
+
+  if (!items.length) {
+    container.innerHTML = '<div class="pl-empty">✅ No immediate actions required</div>';
+    return;
+  }
+  container.innerHTML = items.map(r => {
+    const d = calcDays(r.due, r.status);
+    return `<div class="pl-item" ondblclick="openEdit(${r.id})">
+      <span class="pl-ar">#${r.ar}</span>
+      <span class="pl-subj" title="${esc(r.subject)}">${esc(r.subject.length>65?r.subject.slice(0,63)+'…':r.subject)}</span>
+      <span class="pl-owner">${esc((r.owner||'—').split('\n')[0].slice(0,18))}</span>
+      <span class="pl-aging">${agingPill(d,r.status)}</span>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════
+// DASHBOARD TABLE
+// ═══════════════════════════════════
+function renderDashTable() {
+  const sf = document.getElementById('dash-status-filter')?.value || '';
+  let data = sf ? arData.filter(r => r.status === sf) : arData;
+  data = sortData(data, dashSortState);
+
+  const rpp = 20;
+  const total = data.length;
+  const tp = Math.max(1, Math.ceil(total/rpp));
+  currentPage.dash = Math.min(currentPage.dash, tp);
+  const slice = data.slice((currentPage.dash-1)*rpp, currentPage.dash*rpp);
+
+  document.getElementById('dash-rec-count').textContent = `${total} records`;
+  const tbody = document.getElementById('dashTbody');
+  document.getElementById('dashEmpty').style.display = slice.length ? 'none' : 'block';
+
+  const showAging = document.getElementById('tog-aging')?.checked !== false;
+  const highlight = document.getElementById('tog-highlight')?.checked !== false;
+
+  tbody.innerHTML = slice.map(r => {
+    const d = calcDays(r.due, r.status);
+    const rowClass = highlight && (r.status==='Past Due' || (d!==null && d>15)) ? 'row-critical' : highlight && d!==null && d>0 ? 'row-pastdue' : '';
+    return `<tr id="drow-${r.id}" class="${rowClass}">
+      <td class="c-ar">${r.ar}</td>
+      <td class="c-subj" title="${esc(r.subject)}">${esc(r.subject.length>55?r.subject.slice(0,53)+'…':r.subject)}</td>
+      <td>${statusBadge(r.status, r.id)}</td>
+      <td><span class="ed" onclick="qEditDate(${r.id},this,'dash')">${r.due||'—'}</span></td>
+      <td>${showAging ? agingPill(d,r.status) : ''}</td>
+      <td class="c-ellip"><span title="${esc(r.owner)}">${esc((r.owner||'—').split('\n')[0].slice(0,20))}</span></td>
+      <td style="text-align:center"><div class="row-acts">
+        <button class="btn btn-ghost btn-xs" onclick="openEdit(${r.id})">✎</button>
+        <button class="btn btn-danger btn-xs" onclick="confirmDel(${r.id})">✕</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+
+  renderPagination('dashPagination', total, rpp, currentPage.dash, p => { currentPage.dash=p; renderDashTable(); });
+}
+
+// ═══════════════════════════════════
+// FULL TABLE
+// ═══════════════════════════════════
+function getFullFiltered() {
+  const s = (document.getElementById('searchInput')?.value||'').toLowerCase();
+  const sf = document.getElementById('statusFilter')?.value||'';
+  const af = document.getElementById('agingFilter')?.value||'';
+  const of = document.getElementById('ownerFilter')?.value||'';
+  return arData.filter(r => {
+    if (s && !`${r.ar} ${r.subject} ${r.owner} ${r.action} ${r.reminders}`.toLowerCase().includes(s)) return false;
+    if (sf && r.status!==sf) return false;
+    if (af) { const d=calcDays(r.due,r.status); if(d===null&&af!=='na')return false; if(d!==null&&agingCat(d)!==af)return false; }
+    if (of && (r.owner||'').split('\n')[0].trim()!==of) return false;
+    return true;
+  });
+}
+function renderFullTable() {
+  let data = sortData(getFullFiltered(), sortState);
+  const rpp = parseInt(document.getElementById('rowsPerPage')?.value||'25') || data.length;
+  const total = data.length;
+  const tp = Math.max(1, rpp ? Math.ceil(total/rpp) : 1);
+  currentPage.full = Math.min(currentPage.full, tp);
+  const slice = rpp ? data.slice((currentPage.full-1)*rpp, currentPage.full*rpp) : data;
+
+  document.getElementById('rec-count').textContent = `${total} of ${arData.length} records`;
+  const tbody = document.getElementById('fullTbody');
+  document.getElementById('fullEmpty').style.display = slice.length ? 'none' : 'block';
+
+  const showAging = document.getElementById('tog-aging')?.checked !== false;
+  const highlight = document.getElementById('tog-highlight')?.checked !== false;
+  const compact   = document.getElementById('tog-compact')?.checked;
+
+  tbody.innerHTML = slice.map(r => {
+    const d = calcDays(r.due, r.status);
+    const rowClass = highlight && (r.status==='Past Due' || (d!==null && d>15)) ? 'row-critical' : highlight && d!==null && d>0 ? 'row-pastdue' : '';
+    const cp = compact ? 'style="padding:5px 10px"' : '';
+    return `<tr id="row-${r.id}" class="${rowClass}">
+      <td class="c-ar" ${cp}>${r.ar}</td>
+      <td class="c-subj" ${cp} title="${esc(r.subject)}">${esc(r.subject.length>80?r.subject.slice(0,78)+'…':r.subject)}</td>
+      <td ${cp}>${statusBadge(r.status, r.id)}</td>
+      <td ${cp}><span class="ed" onclick="qEditDate(${r.id},this,'full')">${r.due||'—'}</span></td>
+      <td ${cp}>${showAging?agingPill(d,r.status):''}</td>
+      <td ${cp}><span class="ed c-ellip" onclick="qEditField(${r.id},'action',this)" title="${esc(r.action)}">${esc(r.action)||'—'}</span></td>
+      <td ${cp}><span class="ed c-ellip" onclick="qEditField(${r.id},'owner',this)" title="${esc(r.owner)}">${esc((r.owner||'').split('\n')[0].slice(0,22))}</span></td>
+      <td ${cp}><span class="ed c-ellip" onclick="qEditField(${r.id},'reminders',this)" title="${esc(r.reminders)}">${esc(r.reminders.slice(0,35))||'—'}</span></td>
+      <td ${cp} class="no-print" style="text-align:center"><div class="row-acts">
+        <button class="btn btn-ghost btn-xs" onclick="openEdit(${r.id})" title="Edit full record">✎</button>
+        <button class="btn btn-danger btn-xs" onclick="confirmDel(${r.id})" title="Delete">✕</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+
+  renderPagination('fullPagination', total, rpp, currentPage.full, p => { currentPage.full=p; renderFullTable(); });
+}
+
+// ═══════════════════════════════════
+// PAGINATION
+// ═══════════════════════════════════
+function renderPagination(containerId, total, rpp, page, onPage) {
+  const el = document.getElementById(containerId); if(!el) return;
+  if (!rpp || total <= rpp) { el.innerHTML = `<span class="pg-info">${total} records total</span>`; return; }
+  const tp = Math.ceil(total/rpp);
+  const start = (page-1)*rpp+1, end = Math.min(page*rpp,total);
+  let btns = '';
+  const btn = (p,lbl,dis=false) => `<button class="pg-btn${p===page?' active':''}" onclick="(${onPage.toString()})(${p})" ${dis?'disabled':''}>${lbl}</button>`;
+  btns += btn(1,'«', page===1);
+  btns += btn(Math.max(1,page-1),'‹', page===1);
+  for(let p=Math.max(1,page-2);p<=Math.min(tp,page+2);p++) btns += btn(p,p);
+  btns += btn(Math.min(tp,page+1),'›', page===tp);
+  btns += btn(tp,'»', page===tp);
+  el.innerHTML = `<span class="pg-info">Showing ${start}–${end} of ${total}</span><div class="pg-btns">${btns}</div>`;
+}
+
+// ═══════════════════════════════════
+// SORTING
+// ═══════════════════════════════════
+function sortData(data, state) {
+  return [...data].sort((a,b) => {
+    let va, vb;
+    if (state.col==='ar') { va=a.ar; vb=b.ar; }
+    else if (state.col==='subject') { va=a.subject; vb=b.subject; }
+    else if (state.col==='status') { va=a.status; vb=b.status; }
+    else if (state.col==='due') { va=a.due||''; vb=b.due||''; }
+    else if (state.col==='aging') { va=calcDays(a.due,a.status)??-9999; vb=calcDays(b.due,b.status)??-9999; }
+    else if (state.col==='owner') { va=a.owner||''; vb=b.owner||''; }
+    else { va=''; vb=''; }
+    const c = va < vb ? -1 : va > vb ? 1 : 0;
+    return state.asc ? c : -c;
+  });
+}
+function sortBy(col, table) {
+  if (table==='full') {
+    if (sortState.col===col) sortState.asc=!sortState.asc; else { sortState.col=col; sortState.asc=true; }
+    renderFullTable();
+  } else {
+    if (dashSortState.col===col) dashSortState.asc=!dashSortState.asc; else { dashSortState.col=col; dashSortState.asc=true; }
+    renderDashTable();
+  }
+}
+
+// ═══════════════════════════════════
+// INLINE EDITING
+// ═══════════════════════════════════
+function qEditField(id, field, el) {
+  const r = arData.find(x=>x.id===id); if(!r) return;
+  const inp = document.createElement('input');
+  inp.type='text'; inp.className='ed-inp'; inp.value=r[field]||''; inp.style.minWidth='120px';
+  el.style.display='none'; el.parentNode.appendChild(inp); inp.focus(); inp.select();
+  const save = () => { r[field]=inp.value.trim(); inp.remove(); el.style.display=''; el.textContent=r[field]||'—'; el.title=r[field]||''; sessionChanges++; renderAll(); toast('Updated','ok'); };
+  inp.onblur=save; inp.onkeydown=e=>{ if(e.key==='Enter'){e.preventDefault();save();} if(e.key==='Escape'){inp.remove();el.style.display='';} };
+}
+function qEditDate(id, el, table) {
+  const r = arData.find(x=>x.id===id); if(!r) return;
+  const inp = document.createElement('input');
+  inp.type='date'; inp.className='ed-inp'; inp.value=r.due||''; inp.style.minWidth='130px';
+  el.style.display='none'; el.parentNode.appendChild(inp); inp.focus();
+  const save = () => { r.due=inp.value; inp.remove(); el.style.display=''; el.textContent=r.due||'—'; sessionChanges++; renderAll(); toast('Due date updated','ok'); };
+  inp.onblur=save; inp.onchange=save; inp.onkeydown=e=>{ if(e.key==='Enter'){e.preventDefault();save();} if(e.key==='Escape'){inp.remove();el.style.display='';} };
+}
+function qEditStatus(id, badgeEl) {
+  const r = arData.find(x=>x.id===id); if(!r) return;
+  const sel = document.createElement('select'); sel.className='ed-sel';
+  ['Active','Past Due','Hold','Completed','Cancelled'].forEach(s => {
+    const o=document.createElement('option'); o.value=s; o.textContent=s; if(s===r.status)o.selected=true; sel.appendChild(o);
+  });
+  badgeEl.style.display='none'; badgeEl.parentNode.appendChild(sel); sel.focus();
+  const save = () => { r.status=sel.value; sel.remove(); badgeEl.style.display=''; sessionChanges++; renderAll(); toast('Status → '+r.status, r.status==='Past Due'?'warn':'ok'); };
+  sel.onchange=save; sel.onblur=()=>{ sel.remove(); badgeEl.style.display=''; };
+  sel.onkeydown=e=>{ if(e.key==='Enter')save(); if(e.key==='Escape'){sel.remove();badgeEl.style.display='';} };
+}
+
+// ═══════════════════════════════════
+// FILTERS
+// ═══════════════════════════════════
+function setupFilters() {
+  ['searchInput','statusFilter','agingFilter','ownerFilter'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) { el.oninput=()=>{ currentPage.full=1; renderFullTable(); }; el.onchange=()=>{ currentPage.full=1; renderFullTable(); }; }
+  });
+}
+function updateOwnerFilter() {
+  const sel=document.getElementById('ownerFilter'); if(!sel) return;
+  const cur=sel.value;
+  const owners=[...new Set(arData.map(r=>(r.owner||'').split('\n')[0].trim()).filter(Boolean))].sort();
+  sel.innerHTML='<option value="">All Owners</option>'+owners.map(o=>`<option value="${esc(o)}"${o===cur?' selected':''}>${esc(o)}</option>`).join('');
+}
+function clearFilters() {
+  ['searchInput','statusFilter','agingFilter','ownerFilter'].forEach(id=>{ const el=document.getElementById(id); if(el)el.value=''; });
+  currentPage.full=1; renderFullTable();
+}
+
+// ═══════════════════════════════════
+// CHARTS
+// ═══════════════════════════════════
+function destroyCharts() {
+  [statusChart,actionChart].forEach(c=>{ if(c)c.destroy(); });
+  statusChart=actionChart=null;
+}
+function initCharts() {
+  Chart.defaults.font.family = "'IBM Plex Sans', sans-serif";
+  Chart.defaults.color = getComputedStyle(document.body).getPropertyValue('--t3').trim() || '#888';
+
+  statusChart = new Chart(document.getElementById('statusChart'), {
+    type:'doughnut',
+    data:{labels:[],datasets:[{data:[],backgroundColor:[],borderWidth:2,borderColor:'transparent'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',
+      plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:8,boxWidth:10}}}}
+  });
+  actionChart = new Chart(document.getElementById('actionChart'), {
+    type:'doughnut',
+    data:{labels:[],datasets:[{data:[],backgroundColor:[],borderWidth:2,borderColor:'transparent'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'55%',
+      plugins:{legend:{position:'bottom',labels:{font:{size:9},padding:5,boxWidth:8}}}}
+  });
+}
+function updateCharts() {
+  if(!statusChart) return;
+  // Status donut
+  const stList = ['Active','Past Due','Hold','Completed','Cancelled'];
+  const stColors = ['#22c55e','#f97316','#a78bfa','#3d8ef5','#6b7280'];
+  statusChart.data.labels = stList;
+  statusChart.data.datasets[0].data = stList.map(s => arData.filter(r=>r.status===s).length);
+  statusChart.data.datasets[0].backgroundColor = stColors;
+  statusChart.update('none');
+
+  // Action donut
+  const am={};
+  arData.forEach(r => {
+    let a=(r.action||'Unknown').replace('Draft Response for ','DR-').replace('Meeting BN for ','MTG-').replace('Meeting Recommendation for ','Rec-').replace('Info BN for ','Info-').replace('Telephone Action Request','TAR').replace(' AU Minister','Min').replace(' AU DM','DM').replace('/Division or Branch','');
+    if(a.length>18) a=a.slice(0,16)+'…';
+    am[a]=(am[a]||0)+1;
+  });
+  const as=Object.entries(am).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const acColors=['#3d8ef5aa','#22c55eaa','#f59e0baa','#ef4444aa','#a78bfaaa','#f97316aa'];
+  actionChart.data.labels=as.map(([k])=>k);
+  actionChart.data.datasets[0].data=as.map(([,v])=>v);
+  actionChart.data.datasets[0].backgroundColor=acColors;
+  actionChart.update('none');
+
+  // Aging mini bars
+  const agCounts={};
+  AGING_ORDER.forEach(k=>agCounts[k]=0);
+  arData.forEach(r=>{ const d=calcDays(r.due,r.status); if(d!==null){ const c=agingCat(d); if(agCounts[c]!==undefined)agCounts[c]++; } });
+  const maxVal = Math.max(1,...Object.values(agCounts));
+  document.getElementById('agingMiniDiv').innerHTML = AGING_ORDER.map(k => {
+    const n=agCounts[k]; const pct=Math.round(n/maxVal*100);
+    return `<div class="am-row"><span class="am-label">${AGING_SHORT[k]}</span><div class="am-bar-bg"><div class="am-bar" style="width:${pct}%;background:${AGING_COLORS[k]}"></div></div><span class="am-num" style="color:${AGING_COLORS[k]}">${n}</span></div>`;
+  }).join('');
+
+  // Owner workload
+  const om={};
+  arData.forEach(r=>{ const o=(r.owner||'Unassigned').split('\n')[0].trim(); if(!om[o])om[o]={total:0,overdue:0}; om[o].total++; const d=calcDays(r.due,r.status); if(d!==null&&d>0)om[o].overdue++; });
+  const os=Object.entries(om).sort((a,b)=>b[1].total-a[1].total).slice(0,8);
+  const maxO=Math.max(1,...os.map(([,v])=>v.total));
+  document.getElementById('workloadDiv').innerHTML = os.map(([n,v]) => {
+    const pct=Math.round(v.total/maxO*100);
+    const shortN=n.length>22?n.slice(0,20)+'…':n;
+    return `<div class="wl-row"><span class="wl-name" title="${n}">${shortN}</span><div class="wl-bar-bg"><div class="wl-bar" style="width:${pct}%"></div></div><span class="wl-num">${v.total}</span><span class="wl-od">${v.overdue>0?'+'+v.overdue+'od':''}</span></div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════
+// ADD / EDIT MODAL
+// ═══════════════════════════════════
+function openAddModal() {
+  editingId=null;
+  document.getElementById('modalTitle').textContent='Add New AR';
+  const today=new Date().toISOString().slice(0,10);
+  const setV=(id,v)=>{ const el=document.getElementById(id); if(el)el.value=v; };
+  setV('f-ar',''); setV('f-subject',''); setV('f-status','Active');
+  setV('f-recd',today); setV('f-due',''); setV('f-owner',''); setV('f-action',''); setV('f-reminders','');
+  document.getElementById('arModal').classList.add('open');
+}
+function openEdit(id) {
+  const r=arData.find(x=>x.id===id); if(!r) return;
+  editingId=id;
+  document.getElementById('modalTitle').textContent='Edit AR #'+r.ar;
+  const setV=(fid,v)=>{ const el=document.getElementById(fid); if(el)el.value=v||''; };
+  setV('f-ar',r.ar); setV('f-subject',r.subject); setV('f-status',r.status);
+  setV('f-recd',r.recd); setV('f-due',r.due); setV('f-owner',r.owner);
+  setV('f-action',r.action); setV('f-reminders',r.reminders);
+  document.getElementById('arModal').classList.add('open');
+}
+function closeModal() { document.getElementById('arModal').classList.remove('open'); }
+function saveRecord() {
+  const ar=parseInt(document.getElementById('f-ar').value);
+  const subject=document.getElementById('f-subject').value.trim();
+  if(!ar||!subject){ toast('AR # and Subject are required','err'); return; }
+  const data = { ar, subject,
+    status:document.getElementById('f-status').value,
+    recd:document.getElementById('f-recd').value,
+    due:document.getElementById('f-due').value,
+    owner:document.getElementById('f-owner').value.trim(),
+    action:document.getElementById('f-action').value.trim(),
+    reminders:document.getElementById('f-reminders').value.trim()
+  };
+  if(editingId) {
+    Object.assign(arData.find(x=>x.id===editingId), data);
+    toast(`AR #${ar} updated`,'ok');
+    setTimeout(()=>{ const el=document.getElementById('row-'+editingId); if(el)el.classList.add('flash'); },60);
+  } else {
+    arData.push({...data, id:nextId++});
+    toast(`AR #${ar} added`,'ok');
+  }
+  sessionChanges++; closeModal(); renderAll();
+}
+
+// ═══════════════════════════════════
+// DELETE
+// ═══════════════════════════════════
+function confirmDel(id) {
+  deleteId=id;
+  document.getElementById('confirmOverlay').classList.add('open');
+  document.getElementById('confirmDelBtn').onclick=()=>{
+    const r=arData.find(x=>x.id===deleteId);
+    arData=arData.filter(x=>x.id!==deleteId);
+    closeConfirm(); sessionChanges++; renderAll();
+    toast(`AR #${r?.ar||''} deleted`,'info');
+  };
+}
+function closeConfirm(){ document.getElementById('confirmOverlay').classList.remove('open'); deleteId=null; }
+
+// ═══════════════════════════════════
+// UPLOAD
+// ═══════════════════════════════════
+function setupUpload() {
+  const zone=document.getElementById('uploadZone');
+  const inp=document.getElementById('fileInput');
+  if(!zone||!inp) return;
+  zone.addEventListener('dragover',e=>{ e.preventDefault(); zone.classList.add('dragging'); });
+  zone.addEventListener('dragleave',()=>zone.classList.remove('dragging'));
+  zone.addEventListener('drop',e=>{ e.preventDefault(); zone.classList.remove('dragging'); const f=e.dataTransfer.files[0]; if(f)processFile(f); });
+  inp.addEventListener('change',e=>{ if(e.target.files[0])processFile(e.target.files[0]); });
+}
+function processFile(file) {
+  const n=file.name.toLowerCase();
+  if(n.endsWith('.csv')){ const fr=new FileReader(); fr.onload=e=>parseCSV(e.target.result,file.name); fr.readAsText(file); }
+  else if(n.endsWith('.xlsx')||n.endsWith('.xls')){ const fr=new FileReader(); fr.onload=e=>parseXLSX(e.target.result,file.name); fr.readAsArrayBuffer(file); }
+  else toast('Use .xlsx, .xls, or .csv','err');
+}
+function parseXLSX(buf, fname) {
+  try {
+    const wb=XLSX.read(buf,{type:'array',cellDates:true});
+    const sn=wb.SheetNames.find(n=>n.toLowerCase().includes('data'))||wb.SheetNames[0];
+    const ws=wb.Sheets[sn];
+    const raw=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:''});
+    let hRow=-1;
+    for(let i=0;i<Math.min(raw.length,10);i++){ if(raw[i].some(v=>/ar\s*#|ar\s*num|ar\s*no|subject/i.test(String(v||'')))){ hRow=i; break; } }
+    if(hRow<0)hRow=0;
+    const headers=raw[hRow].map(h=>String(h||'').toLowerCase().trim());
+    const fc=(...kw)=>headers.findIndex(h=>kw.some(k=>h.includes(k)));
+    const cols={ar:fc('ar #','ar#','ar no'),subject:fc('subject','desc'),status:fc('status'),recd:fc("rec'd","received"),due:fc('due date','due'),action:fc('action'),owner:fc('assigned','owner','member'),reminders:fc('reminder','note','comment')};
+    const nd=[];
+    for(let i=hRow+1;i<raw.length;i++){
+      const row=raw[i];
+      const arv=cols.ar>=0?row[cols.ar]:''; if(!arv)continue;
+      const arNum=parseInt(arv); if(isNaN(arNum))continue;
+      const pd=v=>{ if(!v)return''; if(v instanceof Date)return v.toISOString().slice(0,10); const d=new Date(v); return isNaN(d)?String(v):d.toISOString().slice(0,10); };
+      const gv=idx=>idx>=0?String(row[idx]||'').trim():'';
+      nd.push({id:nextId++,ar:arNum,subject:gv(cols.subject),status:gv(cols.status)||'Active',recd:pd(cols.recd>=0?row[cols.recd]:''),due:pd(cols.due>=0?row[cols.due]:''),action:gv(cols.action),owner:gv(cols.owner),reminders:gv(cols.reminders)});
+    }
+    if(nd.length){ loadData(nd,fname); }
+    else toast('No valid data found — check column headers','err');
+  } catch(e){ toast('Excel parse error: '+e.message,'err'); }
+}
+function parseCSV(text,fname) {
+  try {
+    const lines=text.split('\n').filter(l=>l.trim()); if(lines.length<2){ toast('CSV appears empty','err'); return; }
+    const pr=line=>{ const r=[]; let q=false,cur=''; for(const ch of line){if(ch==='"')q=!q;else if(ch===','&&!q){r.push(cur.trim());cur='';}else cur+=ch;} r.push(cur.trim()); return r.map(v=>v.replace(/^"|"$/g,'')); };
+    const headers=pr(lines[0]).map(h=>h.toLowerCase());
+    const fc=(...kw)=>headers.findIndex(h=>kw.some(k=>h.includes(k)));
+    const cols={ar:fc('ar #','ar#','ar'),subject:fc('subject','desc'),status:fc('status'),recd:fc("rec'd","received"),due:fc('due date','due'),action:fc('action'),owner:fc('assigned','owner'),reminders:fc('reminder','note')};
+    const nd=[];
+    for(let i=1;i<lines.length;i++){
+      const row=pr(lines[i]); const arv=cols.ar>=0?row[cols.ar]:''; if(!arv)continue;
+      const arNum=parseInt(arv); if(isNaN(arNum))continue;
+      const gv=idx=>idx>=0?(row[idx]||'').trim():'';
+      nd.push({id:nextId++,ar:arNum,subject:gv(cols.subject),status:gv(cols.status)||'Active',recd:gv(cols.recd),due:gv(cols.due),action:gv(cols.action),owner:gv(cols.owner),reminders:gv(cols.reminders)});
+    }
+    if(nd.length){ loadData(nd,fname); }
+    else toast('No valid data in CSV','err');
+  } catch(e){ toast('CSV parse error: '+e.message,'err'); }
+}
+function loadData(nd, fname) {
+  arData=nd; sessionChanges=1;
+  nextId = Math.max(0,...nd.map(r=>r.id||0)) + 100;
+  const dbSource=document.getElementById('db-source');
+  const dbLoaded=document.getElementById('db-loaded');
+  if(dbSource) dbSource.textContent=fname.slice(0,20);
+  if(dbLoaded) dbLoaded.textContent='Loaded '+new Date().toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'});
+  setSyncLabel('☁ Uploading…','syncing');
+  renderAll();
+  toast(`Loaded ${nd.length} records — pushing to cloud…`,'ok');
+  setTimeout(pushData, 600);
+  switchToTab('dashboard');
+}
+
+// ═══════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════
+function exportCSV() {
+  const hdr=['AR #','Subject','Status','Received Date','Due Date','Days Past Due','Aging Category','Action Type','Owner','Notes'];
+  const rows=arData.map(r=>{ const d=calcDays(r.due,r.status); return [r.ar,r.subject,r.status,r.recd,r.due,d!==null?d:'',d!==null?AGING_LABELS[agingCat(d)]:'N/A',r.action,r.owner,r.reminders]; });
+  const csv=[hdr,...rows].map(row=>row.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download=`GTM_AR_Export_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+  toast('Exported CSV','ok');
+}
+function exportJSON() {
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(arData,null,2)],{type:'application/json'}));
+  a.download=`GTM_AR_Export_${new Date().toISOString().slice(0,10)}.json`; a.click();
+  toast('Exported JSON','ok');
+}
+function printDashboard() { window.print(); }
+
+// ═══════════════════════════════════
+// DATA FRESHNESS
+// ═══════════════════════════════════
+function checkDataFreshness() {
+  const warn=document.getElementById('freshnessWarn'); if(!warn) return;
+  const old=arData.filter(r=>r.due&&new Date(r.due)<new Date(Date.now()-90*86400000)).length;
+  warn.classList.toggle('show', old > arData.length*0.5 && arData.length>0);
+}
+
+// ═══════════════════════════════════
+// ADMIN STATS
+// ═══════════════════════════════════
+function updateAdminStats() {
+  // Update managers list display in admin
+  const mgrEl = document.getElementById('mgr-list-display');
+  if (mgrEl) {
+    const mgrs = getManagerOwners();
+    mgrEl.textContent = mgrs.length > 0 ? mgrs.join(' · ') : 'No managers found — add owners to arData';
+  }
+  const set=(id,v)=>{ const el=document.getElementById(id); if(el)el.textContent=v; };
+  const overdue=arData.filter(r=>{ const d=calcDays(r.due,r.status); return d!==null&&d>0; }).length;
+  set('adm-total',arData.length); set('adm-overdue',overdue);
+  set('adm-pastdue',arData.filter(r=>r.status==='Past Due').length);
+  set('adm-changes',sessionChanges);
+  // Update sync admin display
+  if(lastSyncTime) set('adm-last-sync', lastSyncTime.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',second:'2-digit'}));
+  const dot = document.getElementById('adm-sync-dot');
+  const stat = document.getElementById('adm-sync-status');
+  if(dot && stat) {
+    if(syncEnabled){ dot.style.background='#22c55e'; stat.textContent='Live — syncing every 30s'; stat.style.color='var(--success)'; }
+    else { dot.style.background='#6b7280'; stat.textContent='Sync paused (manual mode)'; stat.style.color='var(--t3)'; }
+  }
+}
+
+function toggleSync(enabled) {
+  syncEnabled = enabled;
+  if(enabled) {
+    toast('📡 Live sync enabled — auto-refreshing every 30s','ok');
+    pullData(false);
+    if(!syncInterval) syncInterval = setInterval(()=>pullData(true),30000);
+  } else {
+    clearInterval(syncInterval); syncInterval=null;
+    setSyncLabel('⏸ Sync paused','offline');
+    toast('Live sync paused — manual mode','warn');
+  }
+  updateAdminStats();
+}
+function updateDBStats() {
+  const set=(id,v)=>{ const el=document.getElementById(id); if(el)el.textContent=v; };
+  const overdue=arData.filter(r=>{ const d=calcDays(r.due,r.status); return d!==null&&d>0; }).length;
+  const owners=[...new Set(arData.map(r=>(r.owner||'').split('\n')[0].trim()).filter(Boolean))].length;
+  set('db-total',arData.length); set('db-active',arData.filter(r=>r.status==='Active').length);
+  set('db-pastdue',arData.filter(r=>r.status==='Past Due').length);
+  set('db-overdue',overdue); set('db-owners',owners); set('db-changes',sessionChanges);
+}
+
+// ═══════════════════════════════════
+// CONFIRM RESET
+// ═══════════════════════════════════
+function confirmReset() {
+  if(confirm('Reset all data to original seed data? All edits will be lost.')) {
+    arData=JSON.parse(JSON.stringify(SEED)); sessionChanges=1;
+    nextId=200;
+    const ds=document.getElementById('db-source'); if(ds) ds.textContent='Seed';
+    const dl=document.getElementById('db-loaded'); if(dl) dl.textContent='Embedded data';
+    setSyncLabel('☁ Pushing reset…','syncing');
+    renderAll(); toast('Reset to seed — pushing to cloud…','info');
+    setTimeout(pushData, 600);
+  }
+}
+function toggleCompact() { renderFullTable(); }
+
+// ═══════════════════════════════════
+// REPORTING
+// ═══════════════════════════════════
+function generateReport() {
+  const title=document.getElementById('r-title').value||'AR Status Report';
+  const type=document.getElementById('r-type').value;
+  const statusF=document.getElementById('r-status').value;
+  const author=document.getElementById('r-author').value;
+  const notes=document.getElementById('r-notes').value;
+  const dateStr=new Date().toLocaleDateString('en-CA',{year:'numeric',month:'long',day:'numeric'});
+  let data=statusF?arData.filter(r=>r.status===statusF):arData;
+
+  let body='';
+  const L=(s='')=>{ body+=s+'\n'; };
+
+  // ── HEADER (clean, minimal) ──
+  L(title.toUpperCase());
+  L('─'.repeat(Math.min(title.length+2, 52)));
+  if(author) L(`Prepared by:  ${author}`);
+  L(`Date:         ${dateStr}`);
+  L(`Total Records: ${data.length}${statusF?' ('+statusF+' only)':''}`);
+  L();
+
+  // ── EXECUTIVE SUMMARY — clean stats block ──
+  if(type==='executive') {
+    const active=data.filter(r=>r.status==='Active').length;
+    const pastDue=data.filter(r=>r.status==='Past Due').length;
+    const hold=data.filter(r=>r.status==='Hold').length;
+    const completed=data.filter(r=>r.status==='Completed').length;
+    const cancelled=data.filter(r=>r.status==='Cancelled').length;
+    const overdue=data.filter(r=>{ const d=calcDays(r.due,r.status); return d!==null&&d>0; }).length;
+    const today=data.filter(r=>calcDays(r.due,r.status)===0).length;
+    const upcoming=data.filter(r=>{ const d=calcDays(r.due,r.status); return d!==null&&d<0; }).length;
+
+    L('STATUS SUMMARY');
+    L('──────────────────────────────');
+    L(`  Active          ${String(active).padStart(4)}`);
+    L(`  Past Due        ${String(pastDue).padStart(4)}  ← needs action`);
+    L(`  On Hold         ${String(hold).padStart(4)}`);
+    L(`  Completed       ${String(completed).padStart(4)}`);
+    L(`  Cancelled       ${String(cancelled).padStart(4)}`);
+    L();
+    L('AGING SNAPSHOT');
+    L('──────────────────────────────');
+    L(`  Overdue         ${String(overdue).padStart(4)}  ← past due date`);
+    L(`  Due Today       ${String(today).padStart(4)}  ← action today`);
+    L(`  Upcoming        ${String(upcoming).padStart(4)}  ← due in future`);
+    L();
+
+    // Top overdue items only if any
+    const overdueItems=data.filter(r=>{ const d=calcDays(r.due,r.status); return r.status==='Past Due'||(d!==null&&d>0); }).sort((a,b)=>(calcDays(b.due,b.status)??0)-(calcDays(a.due,a.status)??0)).slice(0,8);
+    if(overdueItems.length>0){
+      L('TOP OVERDUE ITEMS');
+      L('──────────────────────────────');
+      overdueItems.forEach((r,i)=>{
+        const d=calcDays(r.due,r.status);
+        const aging=d!==null&&d>0?`+${d}d`:r.status==='Past Due'?'PAST DUE':'';
+        L(`  ${String(i+1).padStart(2)}. AR #${r.ar}  [${aging}]`);
+        L(`      ${r.subject.slice(0,60)}`);
+        L(`      Owner: ${(r.owner||'—').split('\n')[0].slice(0,30)}  |  Due: ${r.due||'—'}`);
+      });
+      L();
+    }
+    if(notes){ L('NOTES'); L('──────────────────────────────'); L(notes); L(); }
+    L(`Generated: ${new Date().toLocaleString('en-CA')}`);
+    document.getElementById('reportPreview').textContent=body;
+    toast('Report generated','ok');
+    return;
+  }
+
+  // ── PAST DUE & OVERDUE ──
+  if(type==='pastdue') {
+    const overdueItems=data.filter(r=>{ const d=calcDays(r.due,r.status); return r.status==='Past Due'||(d!==null&&d>0); }).sort((a,b)=>(calcDays(b.due,b.status)??0)-(calcDays(a.due,a.status)??0));
+    L(`PAST DUE & OVERDUE  (${overdueItems.length} items)`);
+    L('─'.repeat(52));
+    if(!overdueItems.length){ L('  None — all clear!'); }
+    overdueItems.forEach((r,i)=>{
+      const d=calcDays(r.due,r.status);
+      L(`  ${String(i+1).padStart(2)}.  AR #${r.ar}  [${d!==null&&d>0?'+'+d+'d overdue':r.status}]`);
+      L(`       ${r.subject.slice(0,68)}`);
+      L(`       Owner: ${(r.owner||'—').split('\n')[0]}  |  Due: ${r.due||'—'}`);
+      L();
+    });
+    if(notes){ L('NOTES'); L('──────────────────'); L(notes); L(); }
+    L(`Generated: ${new Date().toLocaleString('en-CA')}`);
+    document.getElementById('reportPreview').textContent=body; toast('Report generated','ok'); return;
+  }
+
+  // ── FULL LISTING ──
+  if(type==='full') {
+    L(`FULL AR LISTING  (${data.length} records)`);
+    L('─'.repeat(52));
+    data.forEach((r,i)=>{
+      const d=calcDays(r.due,r.status);
+      const aging=d!==null?AGING_LABELS[agingCat(d)]:'N/A';
+      L(`  ${String(i+1).padStart(2)}.  AR #${r.ar} — ${r.status}`);
+      L(`       ${r.subject.slice(0,70)}`);
+      L(`       Owner: ${(r.owner||'—').split('\n')[0].slice(0,30)}`);
+      L(`       Due: ${r.due||'—'}  |  Aging: ${aging}`);
+      if(r.action) L(`       Type: ${r.action.slice(0,50)}`);
+      if(r.reminders) L(`       Notes: ${r.reminders.slice(0,55)}`);
+      L();
+    });
+    if(notes){ L('NOTES'); L('──────────────────'); L(notes); L(); }
+    L(`Generated: ${new Date().toLocaleString('en-CA')}`);
+    document.getElementById('reportPreview').textContent=body; toast('Report generated','ok'); return;
+  }
+
+  // ── BY OWNER ──
+  if(type==='byowner') {
+    const owners=[...new Set(data.map(r=>(r.owner||'Unassigned').split('\n')[0].trim()))].sort();
+    L(`BY OWNER  (${owners.length} owners, ${data.length} ARs)`);
+    L('─'.repeat(52));
+    owners.forEach(o=>{
+      const ors=data.filter(r=>(r.owner||'Unassigned').startsWith(o));
+      const od=ors.filter(r=>{ const d=calcDays(r.due,r.status); return d!==null&&d>0; }).length;
+      L(`  ${o}  (${ors.length} ARs${od>0?', '+od+' overdue':''})`);
+      ors.forEach(r=>{ const d=calcDays(r.due,r.status); L(`    • AR #${r.ar}  [${r.status}${d!==null&&d>0?' +'+d+'d':''}]  ${r.subject.slice(0,50)}`); });
+      L();
+    });
+    if(notes){ L('NOTES'); L('──────────────────'); L(notes); L(); }
+    L(`Generated: ${new Date().toLocaleString('en-CA')}`);
+    document.getElementById('reportPreview').textContent=body; toast('Report generated','ok'); return;
+  }
+
+  // ── AGING BREAKDOWN ──
+  if(type==='aging') {
+    L('AGING BREAKDOWN');
+    L('─'.repeat(52));
+    AGING_ORDER.forEach(k=>{
+      const bucket=data.filter(r=>{ const d=calcDays(r.due,r.status); return d!==null&&agingCat(d)===k; });
+      if(bucket.length){
+        L(`  ${AGING_LABELS[k].padEnd(28)} ${bucket.length} ARs`);
+        bucket.slice(0,5).forEach(r=>L(`     • AR #${r.ar} — ${r.subject.slice(0,48)}`));
+        if(bucket.length>5) L(`     … and ${bucket.length-5} more`);
+        L();
+      }
+    });
+    if(notes){ L('NOTES'); L('──────────────────'); L(notes); L(); }
+    L(`Generated: ${new Date().toLocaleString('en-CA')}`);
+    document.getElementById('reportPreview').textContent=body; toast('Report generated','ok'); return;
+  }
+
+  // ── DUE TODAY ──
+  if(type==='today') {
+    const todayARs=data.filter(r=>calcDays(r.due,r.status)===0);
+    L(`DUE TODAY  (${todayARs.length} items)`);
+    L('─'.repeat(52));
+    if(!todayARs.length){ L('  Nothing due today — all clear.'); L(); }
+    todayARs.forEach((r,i)=>{
+      L(`  ${String(i+1).padStart(2)}.  AR #${r.ar} — ${r.status}`);
+      L(`       ${r.subject.slice(0,68)}`);
+      L(`       Owner: ${(r.owner||'—').split('\n')[0]}  |  Action: ${(r.action||'—').slice(0,35)}`);
+      L();
+    });
+    if(notes){ L('NOTES'); L('──────────────────'); L(notes); L(); }
+    L(`Generated: ${new Date().toLocaleString('en-CA')}`);
+    document.getElementById('reportPreview').textContent=body; toast('Report generated','ok'); return;
+  }
+}
+function openEmail() {
+  const prev=document.getElementById('reportPreview').textContent;
+  if(!prev||prev.startsWith('Click')){ toast('Generate report first','warn'); return; }
+  const to=document.getElementById('r-to').value||'';
+  const cc=document.getElementById('r-cc').value||'';
+  const subj=encodeURIComponent(document.getElementById('r-subj').value||'AU-ARS Report');
+  window.location.href=`mailto:${to}?cc=${cc}&subject=${subj}&body=${encodeURIComponent(prev)}`;
+}
+function copyReport() {
+  const text=document.getElementById('reportPreview').textContent;
+  if(!text||text.startsWith('Click')){ toast('Generate report first','warn'); return; }
+  navigator.clipboard.writeText(text).then(()=>toast('Copied to clipboard','ok')).catch(()=>{ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast('Copied','ok'); });
+}
+function printReport() {
+  const text=document.getElementById('reportPreview').textContent;
+  if(!text||text.startsWith('Click')){ toast('Generate report first','warn'); return; }
+  const w=window.open('','_blank');
+  w.document.write(`<html><head><title>AR Report</title><style>body{font-family:'Courier New',monospace;font-size:11px;white-space:pre;padding:20px;color:#000}</style></head><body>${text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</body></html>`);
+  w.document.close(); w.print();
+}
+
+function downloadReport() {
+  var previewEl = document.getElementById('reportPreview');
+  if (!previewEl || !previewEl.textContent || previewEl.textContent.startsWith('Click')) {
+    toast('Generate a report first', 'warn'); return;
+  }
+  var title   = (document.getElementById('r-title').value  || 'AR Operational Status Report').trim();
+  var author  = (document.getElementById('r-author').value || '').trim();
+  var rType   = document.getElementById('r-type').value || 'executive';
+  var statusF = document.getElementById('r-status').value || '';
+  var notes   = (document.getElementById('r-notes').value || '').trim();
+  var today   = new Date().toLocaleDateString('en-CA', {year:'numeric', month:'long', day:'numeric'});
+  var genTime = new Date().toLocaleString('en-CA');
+
+  // ── Compute KPIs from full dataset ──
+  var total    = arData.length;
+  var active   = arData.filter(function(r){ return r.status==='Active'; }).length;
+  var pastDue  = arData.filter(function(r){ return r.status==='Past Due'; }).length;
+  var hold     = arData.filter(function(r){ return r.status==='Hold'; }).length;
+  var done     = arData.filter(function(r){ return r.status==='Completed'||r.status==='Cancelled'; }).length;
+  var overdue  = arData.filter(function(r){ var d=calcDays(r.due,r.status); return d!==null&&d>0; }).length;
+  var dueToday = arData.filter(function(r){ return calcDays(r.due,r.status)===0; }).length;
+  var upcoming = arData.filter(function(r){ var d=calcDays(r.due,r.status); return d!==null&&d<0; }).length;
+
+  // ── Filter data per report type ──
+  var data = statusF ? arData.filter(function(r){ return r.status===statusF; }) : arData.slice();
+  if (rType === 'pastdue') {
+    data = data.filter(function(r){ var d=calcDays(r.due,r.status); return r.status==='Past Due'||(d!==null&&d>0); });
+    data.sort(function(a,b){ return (calcDays(b.due,b.status)||0)-(calcDays(a.due,a.status)||0); });
+  } else if (rType === 'today') {
+    data = data.filter(function(r){ return calcDays(r.due,r.status)===0; });
+  } else if (rType === 'byowner') {
+    data.sort(function(a,b){ return (a.owner||'').localeCompare(b.owner||''); });
+  } else {
+    data.sort(function(a,b){ return a.ar - b.ar; });
+  }
+
+  // ── Status chart data (for inline pie) ──
+  var stLabels = ['Active','Past Due','On Hold','Completed','Cancelled'];
+  var stCounts = [active, pastDue, hold,
+    arData.filter(function(r){ return r.status==='Completed'; }).length,
+    arData.filter(function(r){ return r.status==='Cancelled'; }).length];
+  var stColors = ['#22c55e','#f97316','#a78bfa','#3d8ef5','#6b7280'];
+
+  // ── Aging buckets ──
+  var agKeys   = ['future','due-today','1-3','4-7','8-15','16-30','30plus'];
+  var agLabels = ['Upcoming','Due Today','1-3d','4-7d','8-15d','16-30d','30d+'];
+  var agColors = ['#3d8ef5','#f59e0b','#f87171','#ef4444','#dc2626','#b91c1c','#7f1d1d'];
+  var agCounts = [0,0,0,0,0,0,0];
+  arData.forEach(function(r){
+    var d = calcDays(r.due, r.status);
+    if (d === null) return;
+    var idx = d<0?0 : d===0?1 : d<=3?2 : d<=7?3 : d<=15?4 : d<=30?5 : 6;
+    agCounts[idx]++;
+  });
+  var agMax = Math.max(1, Math.max.apply(null, agCounts));
+
+  // ── Owner workload ──
+  var om = {};
+  arData.forEach(function(r){
+    var o = (r.owner||'Unassigned').split('\n')[0].trim();
+    if (!om[o]) om[o] = {total:0, overdue:0};
+    om[o].total++;
+    var d = calcDays(r.due, r.status);
+    if (d!==null && d>0) om[o].overdue++;
+  });
+  var owners = Object.entries(om).sort(function(a,b){ return b[1].total-a[1].total; }).slice(0,10);
+  var owMax = owners.length ? owners[0][1].total : 1;
+
+  // ── Build table rows ──
+  var tableRows = '';
+  var prevOwner = '';
+  data.forEach(function(r, idx) {
+    var d = calcDays(r.due, r.status);
+    var agingTxt, agingBg, agingFg;
+    if (d === null)   { agingTxt='—';               agingBg='#f3f4f6'; agingFg='#6b7280'; }
+    else if (d > 30)  { agingTxt='+'+d+'d';         agingBg='#fde8e8'; agingFg='#7f1d1d'; }
+    else if (d > 15)  { agingTxt='+'+d+'d';         agingBg='#fee2e2'; agingFg='#b91c1c'; }
+    else if (d > 7)   { agingTxt='+'+d+'d';         agingBg='#fee2e2'; agingFg='#dc2626'; }
+    else if (d > 3)   { agingTxt='+'+d+'d';         agingBg='#ffedd5'; agingFg='#ef4444'; }
+    else if (d > 0)   { agingTxt='+'+d+'d';         agingBg='#ffedd5'; agingFg='#f97316'; }
+    else if (d === 0) { agingTxt='TODAY';            agingBg='#fef9c3'; agingFg='#b45309'; }
+    else              { agingTxt=Math.abs(d)+'d';   agingBg='#dcfce7'; agingFg='#15803d'; }
+
+    var sBg, sFg, sTxt;
+    if      (r.status==='Active')    { sBg='#dcfce7'; sFg='#15803d'; sTxt='Active'; }
+    else if (r.status==='Past Due')  { sBg='#fee2e2'; sFg='#991b1b'; sTxt='Past Due'; }
+    else if (r.status==='Hold')      { sBg='#fef9c3'; sFg='#854d0e'; sTxt='On Hold'; }
+    else if (r.status==='Completed') { sBg='#dbeafe'; sFg='#1e40af'; sTxt='Done'; }
+    else if (r.status==='Cancelled') { sBg='#f3f4f6'; sFg='#6b7280'; sTxt='Cancelled'; }
+    else                             { sBg='#f3f4f6'; sFg='#374151'; sTxt=r.status||'—'; }
+
+    var ownerHdr = '';
+    if (rType === 'byowner' && r.owner !== prevOwner) {
+      prevOwner = r.owner;
+      ownerHdr = '<tr><td colspan="8" style="background:#f0f4f8;font-weight:800;font-size:11px;color:#1559a8;padding:8px 13px;border-bottom:2px solid #dde6f0;letter-spacing:.03em">'
+        + (r.owner||'Unassigned') + '</td></tr>';
+    }
+    tableRows += ownerHdr
+      + '<tr>'
+      + '<td style="font-weight:800;color:#1559a8;white-space:nowrap;font-family:monospace">#' + r.ar + '</td>'
+      + '<td style="max-width:280px;line-height:1.4">' + esc(r.subject) + '</td>'
+      + '<td style="font-size:11px;color:#374151">' + esc(r.owner) + '</td>'
+      + '<td style="font-size:11px;color:#374151">' + esc(r.action) + '</td>'
+      + '<td style="white-space:nowrap;font-size:11px">' + (r.recd||'—') + '</td>'
+      + '<td style="white-space:nowrap;font-size:11px">' + (r.due||'—') + '</td>'
+      + '<td style="white-space:nowrap"><span style="background:'+agingBg+';color:'+agingFg+';padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;font-family:monospace">' + agingTxt + '</span></td>'
+      + '<td><span style="background:'+sBg+';color:'+sFg+';padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700">' + sTxt + '</span></td>'
+      + '</tr>';
+  });
+
+  // ── Helper to escape HTML in data ──
+  function esc(s) {
+    return (s||'—').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── Build SVG donut chart (no external deps needed in static HTML) ──
+  function svgDonut(vals, colors, cx, cy, r, strokeW) {
+    var total = vals.reduce(function(a,b){ return a+b; }, 0) || 1;
+    var paths = '';
+    var angle = -Math.PI/2;
+    vals.forEach(function(v, i) {
+      var sweep = (v/total)*Math.PI*2;
+      if (sweep < 0.001) return;
+      var x1 = cx + r*Math.cos(angle);
+      var y1 = cy + r*Math.sin(angle);
+      var x2 = cx + r*Math.cos(angle+sweep);
+      var y2 = cy + r*Math.sin(angle+sweep);
+      var large = sweep > Math.PI ? 1 : 0;
+      paths += '<path d="M'+cx+','+cy+' L'+x1+','+y1+' A'+r+','+r+' 0 '+large+',1 '+x2+','+y2+' Z"'
+             + ' fill="'+colors[i]+'" opacity="0.9"/>';
+      angle += sweep;
+    });
+    var inner = cx+','+cy+' m-'+(r*0.55)+',0 a'+(r*0.55)+','+(r*0.55)+' 0 1,0 '+(r*1.1)+',0 a'+(r*0.55)+','+(r*0.55)+' 0 1,0 -'+(r*1.1)+',0';
+    return '<svg width="'+(cx*2)+'" height="'+(cy*2)+'" xmlns="http://www.w3.org/2000/svg">'
+         + paths
+         + '<circle cx="'+cx+'" cy="'+cy+'" r="'+(r*0.55)+'" fill="#fff"/>'
+         + '<text x="'+cx+'" y="'+(cy+5)+'" text-anchor="middle" font-size="13" font-weight="800" fill="#0d1b2e" font-family="monospace">'+total+'</text>'
+         + '</svg>';
+  }
+
+  // ── Build aging bars HTML ──
+  var agingBarsHtml = '';
+  agKeys.forEach(function(k, i) {
+    var pct = Math.round(agCounts[i]/agMax*100);
+    agingBarsHtml += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">'
+      + '<div style="width:58px;font-size:10px;color:#5a7d9a;text-align:right;flex-shrink:0">' + agLabels[i] + '</div>'
+      + '<div style="flex:1;background:#f0f4f8;border-radius:4px;height:12px;overflow:hidden">'
+      + '<div style="width:'+pct+'%;background:'+agColors[i]+';height:100%;border-radius:4px"></div>'
+      + '</div>'
+      + '<div style="width:24px;font-size:10px;font-weight:700;color:'+agColors[i]+';font-family:monospace;text-align:right">' + agCounts[i] + '</div>'
+      + '</div>';
+  });
+
+  // ── Build owner workload rows ──
+  var ownerRowsHtml = '';
+  owners.forEach(function(entry) {
+    var n = entry[0]; var v = entry[1];
+    var shortN = n.length > 26 ? n.slice(0,24)+'…' : n;
+    var pct = Math.round(v.total/owMax*100);
+    ownerRowsHtml += '<tr>'
+      + '<td style="font-size:11px;color:#2d4a6b;max-width:160px" title="'+esc(n)+'">'+esc(shortN)+'</td>'
+      + '<td style="padding:6px 8px">'
+      + '<div style="background:#f0f4f8;border-radius:4px;height:10px;min-width:80px;overflow:hidden">'
+      + '<div style="width:'+pct+'%;background:#1559a8;height:100%;border-radius:4px"></div>'
+      + '</div></td>'
+      + '<td style="text-align:right;font-family:monospace;font-size:11px;font-weight:700;color:#1559a8">'+v.total+'</td>'
+      + '<td style="text-align:right;font-family:monospace;font-size:11px;color:'+(v.overdue>0?'#c0192b':'#6b7280')+'">'+(v.overdue>0?'+'+v.overdue+'od':'—')+'</td>'
+      + '</tr>';
+  });
+
+  // ── Build status legend ──
+  var legendHtml = '';
+  stLabels.forEach(function(lbl,i){
+    if (stCounts[i] === 0) return;
+    legendHtml += '<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:#2d4a6b">'
+      + '<div style="width:9px;height:9px;border-radius:50%;background:'+stColors[i]+';flex-shrink:0"></div>'
+      + lbl + ' <span style="font-weight:700;font-family:monospace">'+stCounts[i]+'</span></div>';
+  });
+
+  // ── Report type heading ──
+  var rTypeLabels = {
+    executive:'Executive Summary', pastdue:'Past Due & Overdue',
+    full:'Full AR Listing', byowner:'By Owner',
+    aging:'Aging Breakdown', today:'Due Today'
+  };
+  var rTypeLabel = rTypeLabels[rType] || rType;
+  var filterNote = statusF ? ' \u2014 ' + statusF + ' only' : '';
+
+  // ── Notes section (if provided) ──
+  var notesHtml = notes ? '<div style="background:#fff8dc;border:1px solid #f0c040;border-radius:8px;padding:12px 16px;margin-bottom:18px">'
+    + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#854d0e;margin-bottom:4px">Notes</div>'
+    + '<div style="font-size:12px;color:#2d4a6b;line-height:1.6">'+esc(notes)+'</div>'
+    + '</div>' : '';
+
+  var subtitle = 'GTM Operations \u00b7 Government of Alberta \u00b7 ' + today
+               + (author ? ' \u00b7 Prepared by: ' + author : '');
+
+  // ════════════════════════════════════════
+  // ASSEMBLE FULL HTML REPORT
+  // ════════════════════════════════════════
+  var html = '<!DOCTYPE html><html lang="en">'
+    + '<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+    + '<title>' + esc(title) + '</title>'
+    + '<style>'
+    + '* { box-sizing:border-box; margin:0; padding:0; }'
+    + 'body { font-family:Segoe UI,Arial,sans-serif; background:#eef2f7; color:#0d1b2e; }'
+    + '.wrap { max-width:1140px; margin:0 auto; padding:28px 20px 40px; }'
+    // Hero
+    + '.hero { background:linear-gradient(135deg,#091222 0%,#0d2b5e 50%,#1559a8 100%); color:#fff; padding:26px 32px; border-radius:14px; margin-bottom:22px; display:flex; align-items:center; gap:18px; box-shadow:0 8px 32px rgba(13,27,46,.3); }'
+    + '.hero-badge { width:56px; height:56px; background:rgba(255,255,255,.15); border:2px solid rgba(255,255,255,.3); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:900; color:#fff; letter-spacing:-1px; flex-shrink:0; }'
+    + '.hero-title { font-size:21px; font-weight:800; letter-spacing:-.4px; }'
+    + '.hero-type { font-size:13px; font-weight:600; opacity:.65; margin-top:3px; }'
+    + '.hero-sub { font-size:11px; opacity:.55; margin-top:5px; }'
+    // KPI row
+    + '.kpis { display:grid; grid-template-columns:repeat(7,1fr); gap:10px; margin-bottom:20px; }'
+    + '.kpi { background:#fff; border:1px solid #d4e2f0; border-radius:11px; padding:13px 10px; text-align:center; box-shadow:0 1px 4px rgba(13,27,46,.06); }'
+    + '.kpi-lbl { font-size:8.5px; font-weight:700; text-transform:uppercase; letter-spacing:.9px; color:#7a96b0; margin-bottom:6px; }'
+    + '.kpi-val { font-size:24px; font-weight:800; color:#1559a8; font-family:Georgia,serif; line-height:1; }'
+    + '.kpi-val.r { color:#c0192b; } .kpi-val.a { color:#b45309; } .kpi-val.g { color:#0d7a3e; } .kpi-val.p { color:#5b21b6; }'
+    // Charts row
+    + '.charts-row { display:grid; grid-template-columns:200px 1fr 1fr; gap:14px; margin-bottom:20px; }'
+    + '.chart-card { background:#fff; border:1px solid #d4e2f0; border-radius:11px; padding:14px 16px; box-shadow:0 1px 4px rgba(13,27,46,.06); }'
+    + '.chart-title { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.7px; color:#7a96b0; margin-bottom:10px; }'
+    + '.legend-grid { display:flex; flex-direction:column; gap:5px; margin-top:10px; }'
+    // Aging bars
+    + '.aging-wrap { padding:2px 0; }'
+    // Owner table
+    + '.owner-table { width:100%; border-collapse:collapse; }'
+    + '.owner-table td { padding:5px 8px; border-bottom:1px solid #f0f4f8; }'
+    + '.owner-table tr:last-child td { border-bottom:none; }'
+    // Section
+    + '.section { background:#fff; border:1px solid #d4e2f0; border-radius:11px; overflow:hidden; margin-bottom:18px; box-shadow:0 1px 4px rgba(13,27,46,.06); }'
+    + '.sec-hdr { background:linear-gradient(90deg,#f5f8fb,#edf2f8); border-bottom:1px solid #d4e2f0; padding:11px 18px; display:flex; align-items:center; justify-content:space-between; }'
+    + '.sec-hdr-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.7px; color:#2d4a6b; }'
+    + '.sec-hdr-count { font-size:11px; font-weight:700; color:#1559a8; background:#e8f0fb; padding:2px 10px; border-radius:8px; font-family:monospace; }'
+    // Table
+    + 'table.ar-table { width:100%; border-collapse:collapse; font-size:11.5px; }'
+    + 'table.ar-table th { padding:9px 12px; text-align:left; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:#7a96b0; background:#f8fafc; border-bottom:2px solid #d4e2f0; white-space:nowrap; }'
+    + 'table.ar-table td { padding:9px 12px; border-bottom:1px solid #eef2f7; vertical-align:middle; color:#2d4a6b; line-height:1.3; }'
+    + 'table.ar-table tr:last-child td { border-bottom:none; }'
+    + 'table.ar-table tr:hover td { background:#f5f9ff; }'
+    // Footer
+    + '.footer { text-align:center; font-size:10px; color:#9fb5c8; margin-top:24px; padding-top:16px; border-top:1px solid #d4e2f0; line-height:1.8; }'
+    + '@media print {'
+    + '  body { background:#fff; }'
+    + '  .wrap { padding:0; }'
+    + '  .hero { -webkit-print-color-adjust:exact; print-color-adjust:exact; }'
+    + '  .kpi,.chart-card,.section { break-inside:avoid; -webkit-print-color-adjust:exact; print-color-adjust:exact; }'
+    + '}'
+    + '</style></head><body>'
+    + '<div class="wrap">'
+    // ── Hero ──
+    + '<div class="hero">'
+    + '<div class="hero-badge">AR</div>'
+    + '<div style="flex:1">'
+    + '<div class="hero-title">' + esc(title) + '</div>'
+    + '<div class="hero-type">' + rTypeLabel + filterNote + '</div>'
+    + '<div class="hero-sub">' + subtitle + '</div>'
+    + '</div>'
+    + '<div style="text-align:right;opacity:.6;font-size:10px">'
+    + 'Generated<br><span style="font-family:monospace;font-size:11px;opacity:1">' + genTime + '</span>'
+    + '</div>'
+    + '</div>'
+    // ── KPI Cards ──
+    + '<div class="kpis">'
+    + '<div class="kpi"><div class="kpi-lbl">Total ARs</div><div class="kpi-val">' + total + '</div></div>'
+    + '<div class="kpi"><div class="kpi-lbl">Active</div><div class="kpi-val g">' + active + '</div></div>'
+    + '<div class="kpi"><div class="kpi-lbl">Past Due</div><div class="kpi-val r">' + pastDue + '</div></div>'
+    + '<div class="kpi"><div class="kpi-lbl">On Hold</div><div class="kpi-val a">' + hold + '</div></div>'
+    + '<div class="kpi"><div class="kpi-lbl">Closed</div><div class="kpi-val p">' + done + '</div></div>'
+    + '<div class="kpi"><div class="kpi-lbl">Overdue</div><div class="kpi-val r">' + overdue + '</div></div>'
+    + '<div class="kpi"><div class="kpi-lbl">Due Today</div><div class="kpi-val a">' + dueToday + '</div></div>'
+    + '</div>'
+    // ── Charts Row ──
+    + '<div class="charts-row">'
+    // Status donut
+    + '<div class="chart-card" style="text-align:center">'
+    + '<div class="chart-title">Status Mix</div>'
+    + svgDonut(stCounts, stColors, 90, 80, 68, 16)
+    + '<div class="legend-grid" style="margin-top:8px">' + legendHtml + '</div>'
+    + '</div>'
+    // Aging bars
+    + '<div class="chart-card">'
+    + '<div class="chart-title">Aging Breakdown</div>'
+    + '<div class="aging-wrap">' + agingBarsHtml + '</div>'
+    + '</div>'
+    // Owner workload
+    + '<div class="chart-card">'
+    + '<div class="chart-title">Owner Workload (Top 10)</div>'
+    + '<table class="owner-table">' + ownerRowsHtml + '</table>'
+    + '</div>'
+    + '</div>'
+    // Notes
+    + notesHtml
+    // ── AR Table ──
+    + '<div class="section">'
+    + '<div class="sec-hdr">'
+    + '<div class="sec-hdr-title">Action Requests' + filterNote + '</div>'
+    + '<div class="sec-hdr-count">' + data.length + ' records</div>'
+    + '</div>'
+    + '<table class="ar-table"><thead><tr>'
+    + '<th>AR #</th><th>Subject</th><th>Owner</th><th>Action Type</th>'
+    + '<th>Received</th><th>Due Date</th><th>Aging</th><th>Status</th>'
+    + '</tr></thead><tbody>' + tableRows + '</tbody></table>'
+    + '</div>'
+    // Footer
+    + '<div class="footer">'
+    + 'AU-ARS &nbsp;&middot;&nbsp; Action Request System'
+    + '<br>Government of Alberta &nbsp;&middot;&nbsp; GTM Operations'
+    + '<br>Generated: ' + genTime
+    + '<br><em>Open in browser &rarr; File &rarr; Print &rarr; Save as PDF for best results</em>'
+    + '</div>'
+    + '</div>'
+    + '</body></html>';
+
+  var fname = esc(title).replace(/[^a-z0-9]/gi,'_').replace(/__+/g,'_')
+            + '_' + new Date().toISOString().split('T')[0] + '.html';
+  var a = document.createElement('a');
+  a.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
+  a.download = fname;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  toast('Report downloaded — open in browser and print to PDF', 'ok');
+}
+
+function manScroll(id, el) {
+  document.querySelectorAll('.man-item').forEach(i=>i.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ═══════════════════════════════════
+// TOAST
+// ═══════════════════════════════════
+function toast(msg, type='info') {
+  const icons={ok:'✓',err:'✗',info:'ℹ',warn:'⚠'};
+  const el=document.createElement('div');
+  el.className=`toast t-${type}`;
+  el.innerHTML=`<span style="font-weight:700">${icons[type]||'ℹ'}</span> ${msg}`;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>el.remove(),3200);
+}
+
+// ═══════════════════════════════════
+// KEYBOARD
+// ═══════════════════════════════════
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){ closeModal(); closeConfirm(); }
+  if((e.ctrlKey||e.metaKey)&&e.key==='n'){ e.preventDefault(); openAddModal(); }
+  if((e.ctrlKey||e.metaKey)&&e.key==='e'){ e.preventDefault(); exportCSV(); }
+  if((e.ctrlKey||e.metaKey)&&e.key==='f'){ const s=document.getElementById('searchInput'); if(s){ e.preventDefault(); switchToTab('records'); s.focus(); } }
+  if(e.altKey&&['1','2','3','4'].includes(e.key)){ e.preventDefault(); switchToTab(['dashboard','records','database','reporting'][+e.key-1]); }
+});
+
+// Close overlays on background click
+['arModal','confirmOverlay'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('click',e=>{ if(e.target===e.currentTarget){ if(id==='arModal')closeModal(); else closeConfirm(); } });
+});
+
+
+// ═══════════════════════════════════════════════════════
+// JSONBIN LIVE SYNC ENGINE
+// All users share the same bin — changes push & pull live
+// ═══════════════════════════════════════════════════════
+const PROXY_BASE_URL = 'https://gtm-expense-proxy.onrender.com';
+const HEADERS = { 'Content-Type': 'application/json' };
+
+let syncEnabled   = true;    // can be toggled off in admin
+let isSyncing     = false;
+let lastSyncTime  = null;
+let lastRemoteVer = null;     // track bin version to detect remote changes
+let syncInterval  = null;
+let syncPendingTimer = null;  // debounce writes
+
+// ── Status pill helpers ──────────────────────────────
+function setSyncLabel(text, state) {
+  const dot   = document.getElementById('syncDot');
+  const label = document.getElementById('syncLabel');
+  if (dot)   { dot.className = 'sync-dot ' + (state||''); }
+  if (label) { label.textContent = text; }
+}
+
+// ── PULL from JSONbin ────────────────────────────────
+async function pullData(silent) {
+  if (!syncEnabled) return;
+  setSyncLabel('Syncing…', 'syncing');
+  try {
+    // Note: SharePoint also runs in iframes — don't block on iframe check alone.
+    // Just attempt fetch; the catch block handles all network failures gracefully.
+    const res = await fetch(PROXY_BASE_URL + '/api/getData?dashboard=ar');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    const remote = json.data;
+
+    // Check version — only re-render if remote data actually changed
+    const remoteVer = JSON.stringify(remote);
+    if (remoteVer !== lastRemoteVer) {
+      const isFirstLoad = (lastRemoteVer === null);
+      lastRemoteVer = remoteVer;
+      if (remote && Array.isArray(remote.arData) && remote.arData.length > 0) {
+        arData = remote.arData;
+        nextId = remote.nextId || (Math.max(0,...arData.map(r=>r.id||0)) + 100);
+        const updatedAt = remote.lastUpdated ? new Date(remote.lastUpdated).toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'}) : '';
+        if (!silent || isFirstLoad) {
+          toast('📡 Loaded from cloud — ' + arData.length + ' records' + (updatedAt?' · '+updatedAt:''), 'ok');
+        } else {
+          toast('🔄 Updated by team — ' + arData.length + ' records' + (updatedAt?' at '+updatedAt:''), 'info');
+        }
+        sessionChanges = 0;
+        renderAll();
+      } else if (isFirstLoad) {
+        // Cloud bin is empty on first launch — push SEED as team starting point
+        sessionChanges = 1;
+        setTimeout(() => { pushData(); toast('☁ First launch — syncing data to team workspace…', 'info'); }, 1500);
+      }
+    }
+
+    lastSyncTime = new Date();
+    setSyncLabel('🟢 Live — ' + lastSyncTime.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'}), 'live');
+  } catch(e) {
+    setSyncLabel('⚠ Offline', 'offline');
+    if (!silent) toast('Sync unavailable — check network connection', 'warn');
+  }
+}
+
+// ── PUSH to JSONbin (debounced 1.5s) ────────────────
+function schedulePush() {
+  if (!syncEnabled) return;
+  clearTimeout(syncPendingTimer);
+  setSyncLabel('Saving…', 'syncing');
+  syncPendingTimer = setTimeout(pushData, 1500);
+}
+
+async function pushData() {
+  if (!syncEnabled) return;
+  clearTimeout(syncPendingTimer);  // prevent double-push if scheduled + manual
+  setSyncLabel('Saving…', 'syncing');
+  try {
+    const payload = { arData, nextId, lastUpdated: new Date().toISOString() };
+    const res = await fetch(PROXY_BASE_URL + '/api/updateData?dashboard=ar', {
+      method: 'PUT',
+      headers: HEADERS,
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    lastRemoteVer = JSON.stringify(payload);
+    lastSyncTime = new Date();
+    setSyncLabel('🟢 Saved — ' + lastSyncTime.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'}), 'live');
+    toast('☁ Changes saved to cloud', 'ok');
+  } catch(e) {
+    setSyncLabel('⚠ Save failed', 'offline');
+    toast('Save failed: ' + e.message, 'err');
+  }
+}
+
+// ── Manual sync button ───────────────────────────────
+function manualSync() {
+  toast('🔄 Syncing now…', 'info');
+  pullData(false);
+}
+
+// ── Start auto-polling every 30s ─────────────────────
+function startSync() {
+  pullData(true); // initial pull
+  syncInterval = setInterval(() => pullData(true), 20000); // 20s for responsive team sync
+}
+
+// ── Intercept all data mutations to trigger push ─────
+// Wrap renderAll to auto-push after changes
+const _origRenderAll = renderAll;
+renderAll = function() {
+  _origRenderAll();
+  // Only push after cloud has connected at least once (prevents SEED overwriting cloud data)
+  if (sessionChanges > 0 && lastRemoteVer !== null) schedulePush();
+};
+
+// ═══════════════════════════════════
+// START
+// ═══════════════════════════════════
+init();
+sessionChanges = 0;  // prevent SEED from being accidentally pushed over real cloud data
+startSync();
+</script>
+</body>
+</html>
