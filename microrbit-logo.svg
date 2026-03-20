@@ -1,0 +1,24 @@
+<svg width="560" height="120" viewBox="0 0 560 120" xmlns="http://www.w3.org/2000/svg">
+<rect width="560" height="120" fill="#0d1219" rx="12"/>
+<!-- Orbit rings -->
+<ellipse cx="80" cy="60" rx="52" ry="20" fill="none" stroke="#c4a050" stroke-width="1.5" transform="rotate(-20 80 60)"/>
+<ellipse cx="80" cy="60" rx="52" ry="20" fill="none" stroke="#c4a050" stroke-width="0.6" opacity="0.35" transform="rotate(60 80 60)"/>
+<ellipse cx="80" cy="60" rx="52" ry="20" fill="none" stroke="#c4a050" stroke-width="0.6" opacity="0.35" transform="rotate(-80 80 60)"/>
+<!-- Core -->
+<circle cx="80" cy="60" r="8" fill="#1a2330"/>
+<circle cx="80" cy="60" r="5" fill="#c4a050"/>
+<circle cx="80" cy="60" r="2" fill="#f5d998"/>
+<!-- Orbital dots -->
+<circle cx="131" cy="52" r="3.5" fill="#e8c878"/>
+<circle cx="29" cy="68" r="2.5" fill="#c4a050" opacity="0.6"/>
+<circle cx="110" cy="89" r="2.8" fill="#c4a050" opacity="0.8"/>
+<circle cx="50" cy="31" r="2" fill="#c4a050" opacity="0.5"/>
+<circle cx="80" cy="8" r="2.5" fill="#f0ece4" opacity="0.7"/>
+<circle cx="93" cy="50" r="1.5" fill="#e8c878" opacity="0.9"/>
+<!-- Wordmark -->
+<text x="152" y="67" font-family="Inter, system-ui, sans-serif" font-weight="600" font-size="30" letter-spacing="-0.5">
+  <tspan fill="#c4a050">Micr</tspan><tspan fill="#f0ece4">Orbit</tspan>
+</text>
+<!-- Tagline -->
+<text x="154" y="86" font-family="Inter, system-ui, sans-serif" font-weight="400" font-size="10" letter-spacing="2.5" fill="#8a9ab0">OPERATIONAL INTELLIGENCE</text>
+</svg>
