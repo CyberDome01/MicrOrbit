@@ -1,5 +1,0 @@
-/nexus    /nexus.html    200
-/rts      /rts.html      200
-/pms      /pms.html      200
-/fas      /fas.html      200
-/fms      /fms.html      200
