@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MicrOrbit · AR Routing Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#07090f; --bg2:#0c0f1a; --bg3:#111827; --sur:#151d2e; --sur2:#1a2438;
+  --gold:#c4a050; --gold2:#e8c878; --gold3:#f5d998;
+  --green:#10b981; --red:#ef4444; --amber:#f59e0b; --blue:#3b82f6;
+  --t1:#f0ece4; --t2:#b8b0a0; --t3:#6b7280;
+  --bd:rgba(196,160,80,.12); --bd2:rgba(196,160,80,.25);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--t1);font-family:'Outfit',sans-serif;height:100%;overflow:hidden}
+
+/* TOPBAR */
+.topbar{height:52px;background:var(--bg2);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0;z-index:50;position:relative}
+.topbar-logo{display:flex;align-items:center;gap:8px}
+.topbar-title{font-size:.72rem;font-weight:600;letter-spacing:.12em;color:var(--gold)}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.badge{background:rgba(196,160,80,.1);border:1px solid var(--bd2);border-radius:20px;padding:3px 10px;font-size:.64rem;font-weight:700;letter-spacing:.08em;color:var(--gold)}
+.badge-live{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:20px;padding:3px 10px;font-size:.64rem;font-weight:700;color:#10b981;display:flex;align-items:center;gap:5px}
+.badge-live::before{content:'';width:6px;height:6px;background:#10b981;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.btn-back{background:var(--sur);border:1px solid var(--bd);border-radius:8px;padding:5px 14px;font-family:inherit;font-size:.72rem;font-weight:500;color:var(--t2);cursor:pointer;transition:all .2s;text-decoration:none}
+.btn-back:hover{border-color:var(--gold);color:var(--gold)}
+.btn-icon{background:var(--sur);border:1px solid var(--bd);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:all .2s;position:relative}
+.btn-icon:hover{border-color:var(--gold)}
+.reminder-badge{position:absolute;top:-5px;right:-5px;background:var(--red);color:#fff;border-radius:50%;width:16px;height:16px;font-size:.55rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+
+/* LAYOUT */
+.layout{display:flex;height:calc(100vh - 52px)}
+
+/* LEFT SIDEBAR */
+.sidebar{width:300px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-head{padding:14px 16px;border-bottom:1px solid var(--bd)}
+.sidebar-head h3{font-family:'DM Serif Display',serif;font-size:1rem;color:var(--t1);margin-bottom:8px}
+.stats-row{display:flex;gap:6px}
+.stat-pill{flex:1;background:var(--sur);border:1px solid var(--bd);border-radius:8px;padding:7px;text-align:center}
+.stat-pill .num{font-size:1.1rem;font-weight:700;color:var(--gold)}
+.stat-pill .lbl{font-size:.55rem;color:var(--t3);text-transform:uppercase;letter-spacing:.06em}
+.stat-pill.red .num{color:var(--red)}
+.stat-pill.amber .num{color:var(--amber)}
+.stat-pill.green .num{color:var(--green)}
+
+.btn-new-ar{width:calc(100% - 32px);margin:10px 16px 0;background:linear-gradient(135deg,var(--gold),#a07830);border:none;border-radius:8px;padding:8px;font-family:inherit;font-size:.78rem;font-weight:700;color:#080c12;cursor:pointer;transition:opacity .2s}
+.btn-new-ar:hover{opacity:.85}
+
+.ar-filters{display:flex;gap:4px;padding:8px 16px;overflow-x:auto;flex-shrink:0}
+.ar-filter{background:var(--sur);border:1px solid var(--bd);border-radius:20px;padding:3px 9px;font-size:.63rem;font-weight:600;color:var(--t3);cursor:pointer;white-space:nowrap;transition:all .15s}
+.ar-filter.active{background:rgba(196,160,80,.1);border-color:var(--gold);color:var(--gold)}
+
+.ar-list{flex:1;overflow-y:auto;padding:6px 8px}
+.ar-card{padding:10px 12px;background:var(--sur);border:1px solid var(--bd);border-radius:10px;margin-bottom:6px;cursor:pointer;transition:all .15s;position:relative}
+.ar-card:hover{border-color:var(--bd2)}
+.ar-card.active{border-color:var(--gold);background:var(--sur2)}
+.ar-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.ar-num{font-size:.73rem;font-weight:700;color:var(--gold);font-family:'DM Mono',monospace}
+.ar-days{font-size:.62rem;font-weight:700;padding:2px 6px;border-radius:4px}
+.ar-days.overdue{background:rgba(239,68,68,.15);color:var(--red)}
+.ar-days.due-soon{background:rgba(245,158,11,.15);color:var(--amber)}
+.ar-days.ok{background:rgba(16,185,129,.1);color:var(--green)}
+.ar-subject{font-size:.73rem;color:var(--t1);line-height:1.4;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ar-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ar-status{font-size:.6rem;font-weight:600;padding:1px 6px;border-radius:4px}
+.status-received{background:rgba(59,130,246,.1);color:#60a5fa}
+.status-assigned{background:rgba(245,158,11,.1);color:var(--amber)}
+.status-in_progress{background:rgba(16,185,129,.1);color:var(--green)}
+.status-returned_to_you{background:rgba(196,160,80,.1);color:var(--gold)}
+.status-ready_for_admo{background:rgba(107,114,128,.15);color:#9ca3af;border:1px solid rgba(107,114,128,.3)}
+.status-submitted_to_admo{background:rgba(107,114,128,.1);color:var(--t3)}
+.status-closed{background:rgba(75,85,99,.1);color:var(--t3)}
+.ar-owner{font-size:.6rem;color:var(--t3)}
+.ar-reminder-dot{width:6px;height:6px;background:var(--amber);border-radius:50%;flex-shrink:0}
+
+/* MAIN AREA */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* Tabs */
+.tabs{display:flex;border-bottom:1px solid var(--bd);background:var(--bg2);flex-shrink:0}
+.tab{padding:12px 16px;font-size:.73rem;font-weight:600;color:var(--t3);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+.tab:hover{color:var(--t1)}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* Content panels */
+.panel{flex:1;overflow-y:auto;padding:20px 24px;display:none}
+.panel.active{display:block}
+
+/* Detail view */
+.detail-header{margin-bottom:18px}
+.detail-ar-num{font-family:'DM Mono',monospace;font-size:1rem;font-weight:700;color:var(--gold);margin-bottom:4px}
+.detail-subject{font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--t1);line-height:1.3;margin-bottom:10px}
+.detail-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.chip{background:var(--sur);border:1px solid var(--bd);border-radius:6px;padding:4px 10px;font-size:.67rem;color:var(--t2)}
+.chip strong{color:var(--t1)}
+
+/* Routing chain */
+.routing-chain{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:16px}
+.routing-chain h4{font-size:.68rem;font-weight:700;letter-spacing:.1em;color:var(--t3);text-transform:uppercase;margin-bottom:12px}
+.chain{display:flex;align-items:center;flex-wrap:wrap;gap:4px}
+.chain-node{background:var(--sur);border:1px solid var(--bd);border-radius:8px;padding:7px 10px;text-align:center;min-width:90px}
+.chain-node.active-node{border-color:var(--gold);background:rgba(196,160,80,.06)}
+.chain-node.done{border-color:var(--green);background:rgba(16,185,129,.06)}
+.chain-node.gate{border-color:var(--amber);background:rgba(245,158,11,.06)}
+.chain-node-role{font-size:.58rem;color:var(--t3);text-transform:uppercase;letter-spacing:.06em}
+.chain-node-name{font-size:.72rem;font-weight:600;color:var(--t1);margin-top:2px}
+.chain-arrow{color:var(--t3);font-size:.9rem;padding:0 2px}
+
+/* Audit log */
+.audit-section{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:16px}
+.audit-section h4{font-size:.68rem;font-weight:700;letter-spacing:.1em;color:var(--t3);text-transform:uppercase;margin-bottom:10px}
+.audit-item{display:flex;align-items:flex-start;gap:10px;padding:6px 0;border-bottom:1px solid rgba(196,160,80,.06)}
+.audit-item:last-child{border-bottom:none}
+.audit-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:5px}
+.audit-dot.green{background:var(--green)}
+.audit-dot.amber{background:var(--amber)}
+.audit-dot.red{background:var(--red)}
+.audit-text{font-size:.7rem;color:var(--t2);line-height:1.5}
+.audit-time{font-size:.62rem;color:var(--t3);font-family:'DM Mono',monospace;margin-left:auto;flex-shrink:0}
+
+/* Return panel */
+.return-panel{background:linear-gradient(135deg,rgba(196,160,80,.06),rgba(245,158,11,.04));border:1px solid rgba(196,160,80,.3);border-radius:12px;padding:16px;margin-bottom:16px}
+.return-panel h4{font-size:.72rem;font-weight:700;color:var(--gold);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.revision-diff{background:var(--bg3);border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:10px;font-size:.73rem;font-family:'DM Mono',monospace;color:var(--t2);line-height:1.7;max-height:140px;overflow-y:auto}
+
+/* Draft cards */
+.draft-card{background:var(--bg2);border:1px solid var(--bd2);border-radius:12px;overflow:hidden;margin-bottom:14px}
+.draft-head{background:rgba(196,160,80,.06);border-bottom:1px solid var(--bd);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.draft-head-title{font-size:.7rem;font-weight:700;letter-spacing:.08em;color:var(--gold);text-transform:uppercase}
+.draft-actions{display:flex;gap:6px;flex-wrap:wrap}
+.btn-sm{background:var(--sur);border:1px solid var(--bd);border-radius:6px;padding:4px 10px;font-family:inherit;font-size:.65rem;font-weight:600;color:var(--t2);cursor:pointer;transition:all .15s}
+.btn-sm:hover{border-color:var(--gold);color:var(--gold)}
+.btn-sm.primary{background:var(--gold);border-color:var(--gold);color:#080c12}
+.btn-sm.primary:hover{opacity:.85}
+.btn-sm.danger{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:var(--red)}
+.btn-sm.amber{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.3);color:var(--amber)}
+.draft-body{padding:14px;font-family:'DM Mono',monospace;font-size:.72rem;line-height:1.8;color:var(--t1);white-space:pre-wrap;max-height:260px;overflow-y:auto;border:none;background:transparent;width:100%;resize:none;outline:none}
+
+/* Action row */
+.action-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;padding:14px;background:var(--bg2);border:1px solid var(--bd);border-radius:12px}
+.action-row-label{font-size:.63rem;font-weight:700;letter-spacing:.08em;color:var(--t3);text-transform:uppercase;width:100%;margin-bottom:2px}
+
+/* ADMO gate */
+.admo-gate{background:linear-gradient(135deg,rgba(107,114,128,.08),rgba(75,85,99,.05));border:1px solid rgba(107,114,128,.25);border-radius:12px;padding:14px;margin-bottom:14px}
+.admo-gate h4{font-size:.7rem;font-weight:700;color:#9ca3af;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.admo-gate p{font-size:.7rem;color:var(--t3);line-height:1.6;margin-bottom:10px}
+.admo-gate.ready{border-color:rgba(196,160,80,.3);background:linear-gradient(135deg,rgba(196,160,80,.06),rgba(196,160,80,.02))}
+.admo-gate.ready h4{color:var(--gold)}
+
+/* Reminder card */
+.reminder-card{background:var(--sur);border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:14px}
+.reminder-card h4{font-size:.68rem;font-weight:700;color:var(--amber);margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em}
+.reminder-row{display:flex;align-items:center;gap:8px}
+.reminder-input{background:var(--bg3);border:1px solid var(--bd);border-radius:6px;padding:5px 10px;font-family:inherit;font-size:.75rem;color:var(--t1);outline:none;flex:1}
+.reminder-input:focus{border-color:var(--gold)}
+
+/* Agent input area */
+.agent-input-area{border-top:1px solid var(--bd);padding:12px 18px;background:var(--bg2);flex-shrink:0;display:none}
+.agent-label{font-size:.63rem;font-weight:700;letter-spacing:.1em;color:var(--t3);text-transform:uppercase;margin-bottom:6px}
+.input-row{display:flex;gap:10px;align-items:flex-end}
+.input-box{flex:1;background:var(--sur);border:1px solid var(--bd);border-radius:10px;padding:9px 13px;font-family:inherit;font-size:.82rem;color:var(--t1);resize:none;outline:none;min-height:42px;max-height:100px;line-height:1.5;transition:border-color .2s}
+.input-box::placeholder{color:var(--t3)}
+.input-box:focus{border-color:var(--bd2)}
+.btn-send{background:linear-gradient(135deg,var(--gold),#a07830);border:none;border-radius:10px;width:42px;height:42px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:opacity .2s;flex-shrink:0}
+.btn-send:hover{opacity:.85}
+.btn-send:disabled{opacity:.4;cursor:not-allowed}
+
+/* NEW AR FORM */
+.form-card{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:18px;margin-bottom:14px}
+.form-card h4{font-size:.73rem;font-weight:700;letter-spacing:.08em;color:var(--gold);text-transform:uppercase;margin-bottom:12px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group.full{grid-column:1/-1}
+.form-label{font-size:.63rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.06em}
+.form-input,.form-select,.form-textarea{background:var(--sur);border:1px solid var(--bd);border-radius:8px;padding:7px 11px;font-family:inherit;font-size:.78rem;color:var(--t1);outline:none;width:100%;transition:border-color .2s}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--bd2)}
+.form-textarea{resize:vertical;min-height:78px}
+.form-select option{background:var(--bg3)}
+.btn-generate{background:linear-gradient(135deg,var(--gold),#a07830);border:none;border-radius:8px;padding:9px 18px;font-family:inherit;font-size:.78rem;font-weight:700;color:#080c12;cursor:pointer;transition:opacity .2s}
+.btn-generate:hover{opacity:.85}
+.btn-generate:disabled{opacity:.4}
+.btn-outline{background:var(--sur);color:var(--gold);border:1px solid var(--bd2);border-radius:8px;padding:9px 18px;font-family:inherit;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-outline:hover{background:rgba(196,160,80,.08)}
+
+/* Upload */
+.upload-zone{border:2px dashed var(--bd2);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:12px;position:relative}
+.upload-zone:hover{border-color:var(--gold)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-zone p{font-size:.78rem;color:var(--t3);margin-top:6px}
+.upload-zone span{font-size:.66rem;color:var(--t3)}
+.file-attached{background:rgba(196,160,80,.08);border:1px solid var(--bd2);border-radius:8px;padding:8px 12px;font-size:.72rem;color:var(--gold);display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+
+/* REPORTS TAB */
+.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.report-btn-card{background:var(--sur);border:1px solid var(--bd);border-radius:12px;padding:16px;cursor:pointer;transition:all .2s}
+.report-btn-card:hover{border-color:var(--gold);background:var(--sur2)}
+.report-btn-card .icon{font-size:1.5rem;margin-bottom:8px}
+.report-btn-card h4{font-size:.78rem;font-weight:700;color:var(--t1);margin-bottom:4px}
+.report-btn-card p{font-size:.66rem;color:var(--t3);line-height:1.5}
+.report-output{background:var(--bg2);border:1px solid var(--bd2);border-radius:12px;overflow:hidden;margin-top:14px}
+.report-output-head{background:rgba(196,160,80,.06);border-bottom:1px solid var(--bd);padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+.report-output-title{font-size:.7rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.08em}
+.report-body{padding:16px;font-family:'DM Mono',monospace;font-size:.72rem;line-height:1.8;color:var(--t1);white-space:pre-wrap;max-height:400px;overflow-y:auto;border:none;background:transparent;width:100%;resize:none;outline:none}
+
+/* ROUTING RULES PANEL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--bd2);border-radius:16px;width:min(600px,95vw);max-height:85vh;overflow-y:auto;padding:24px}
+.modal h2{font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--t1);margin-bottom:6px}
+.modal p{font-size:.75rem;color:var(--t3);margin-bottom:20px}
+.modal-close{position:absolute;top:16px;right:16px;background:var(--sur);border:1px solid var(--bd);border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--t2);font-size:1rem}
+.modal{position:relative}
+.rules-table{width:100%;border-collapse:collapse;margin-bottom:14px}
+.rules-table th{font-size:.62rem;font-weight:700;letter-spacing:.08em;color:var(--t3);text-transform:uppercase;padding:6px 10px;text-align:left;border-bottom:1px solid var(--bd)}
+.rules-table td{padding:8px 10px;border-bottom:1px solid rgba(196,160,80,.06)}
+.rules-table input,.rules-table select{background:var(--sur);border:1px solid var(--bd);border-radius:6px;padding:5px 8px;font-family:inherit;font-size:.73rem;color:var(--t1);outline:none;width:100%}
+.rules-table input:focus,.rules-table select:focus{border-color:var(--bd2)}
+.add-rule-row{display:flex;gap:8px;align-items:center;padding-top:6px}
+
+/* Reminder modal */
+.reminder-modal{background:var(--bg2);border:1px solid var(--bd2);border-radius:14px;width:min(420px,95vw);padding:22px}
+.reminder-modal h3{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--t1);margin-bottom:14px}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--sur2);border:1px solid var(--bd2);border-radius:10px;padding:12px 16px;font-size:.78rem;color:var(--t1);z-index:200;animation:toastIn .3s ease;max-width:300px}
+.toast.success{border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.08)}
+.toast.warning{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.08)}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* Thinking */
+.thinking-msg{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--sur);border:1px solid var(--bd);border-radius:8px;font-size:.73rem;color:var(--t3);margin-bottom:10px}
+.dots span{width:5px;height:5px;background:var(--gold);border-radius:50%;display:inline-block;margin:0 2px;animation:tdot 1.4s infinite}
+.dots span:nth-child(2){animation-delay:.2s}
+.dots span:nth-child(3){animation-delay:.4s}
+@keyframes tdot{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+
+/* Empty state */
+.empty-state{text-align:center;padding:50px 20px;color:var(--t3)}
+.empty-state .icon{font-size:2.5rem;margin-bottom:10px}
+.empty-state h3{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--t2);margin-bottom:5px}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--sur2);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <svg width="24" height="24" viewBox="0 0 36 36" fill="none">
+      <style>.o1a{animation:s1a 4s linear infinite;transform-origin:18px 18px}.o2a{animation:s2a 6s linear infinite reverse;transform-origin:18px 18px}@keyframes s1a{to{transform:rotate(360deg)}}@keyframes s2a{to{transform:rotate(360deg)}}</style>
+      <g class="o1a"><ellipse cx="18" cy="18" rx="14" ry="5.5" fill="none" stroke="#c4a050" stroke-width="1.4"/></g>
+      <g class="o2a"><ellipse cx="18" cy="18" rx="14" ry="5.5" fill="none" stroke="#c4a050" stroke-width="0.6" opacity="0.45"/></g>
+      <circle cx="18" cy="18" r="2.5" fill="#c4a050"/>
+    </svg>
+    <span class="topbar-title">MICRORBIT</span>
+    <span style="color:var(--t3);font-size:.7rem">·</span>
+    <span class="topbar-title" style="color:var(--t2)">AR ROUTING AGENT</span>
+  </div>
+  <div class="topbar-right">
+    <span class="badge">🔀 UT GTM BRANCH</span>
+    <div class="btn-icon" onclick="openRemindersModal()" title="Reminders" id="reminder-bell">
+      🔔
+      <span class="reminder-badge" id="reminder-count" style="display:none">0</span>
+    </div>
+    <div class="btn-icon" onclick="openRoutingRules()" title="Routing Rules">⚙️</div>
+    <span class="badge-live">ACTIVE</span>
+    <a href="/MicrOrbit/" class="btn-back">← Workspace</a>
+  </div>
+</div>
+
+<!-- ROUTING RULES MODAL -->
+<div class="modal-overlay" id="routing-modal">
+  <div class="modal">
+    <div class="modal-close" onclick="closeRoutingRules()">✕</div>
+    <h2>⚙️ Director Routing Rules</h2>
+    <p>Define which Director receives each AR type. The agent uses these rules to auto-fill assignments. Changes save automatically to your browser.</p>
+    <table class="rules-table" id="rules-table">
+      <thead><tr><th>Team</th><th>Director Name</th><th>AR Types (covered)</th><th>Keywords</th><th></th></tr></thead>
+      <tbody id="rules-body"></tbody>
+    </table>
+    <div class="add-rule-row">
+      <button class="btn-outline" onclick="addRoutingRule()">+ Add Rule</button>
+      <button class="btn-generate" onclick="saveRoutingRules()">✓ Save Rules</button>
+    </div>
+    <div style="margin-top:16px;padding:12px;background:var(--sur);border-radius:8px;font-size:.7rem;color:var(--t3);line-height:1.7">
+      <strong style="color:var(--t2)">How routing works:</strong> When you create a new AR, the agent checks the AR type and subject keywords against these rules to suggest the correct Director automatically. Multiple keyword matches = higher confidence routing.
+    </div>
+  </div>
+</div>
+
+<!-- REMINDERS MODAL -->
+<div class="modal-overlay" id="reminders-modal">
+  <div class="modal reminder-modal" style="width:min(480px,95vw)">
+    <div class="modal-close" onclick="document.getElementById('reminders-modal').classList.remove('open')">✕</div>
+    <h3>🔔 Reminders</h3>
+    <div id="reminders-list" style="margin-bottom:16px"></div>
+    <div style="font-size:.7rem;color:var(--t3)">Set reminders on individual ARs from the AR Detail view.</div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- AR LIST SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <h3>Action Requests</h3>
+      <div class="stats-row">
+        <div class="stat-pill red"><div class="num" id="stat-overdue">—</div><div class="lbl">Overdue</div></div>
+        <div class="stat-pill amber"><div class="num" id="stat-active">—</div><div class="lbl">Active</div></div>
+        <div class="stat-pill green"><div class="num" id="stat-admo">—</div><div class="lbl">At ADMO</div></div>
+        <div class="stat-pill"><div class="num" id="stat-total">—</div><div class="lbl">Total</div></div>
+      </div>
+    </div>
+    <button class="btn-new-ar" onclick="showTab('new')">+ New AR from ARTS</button>
+    <div class="ar-filters">
+      <div class="ar-filter active" onclick="filterARs('all',this)">All</div>
+      <div class="ar-filter" onclick="filterARs('received',this)">New</div>
+      <div class="ar-filter" onclick="filterARs('in_progress',this)">Active</div>
+      <div class="ar-filter" onclick="filterARs('returned_to_you',this)">Returned</div>
+      <div class="ar-filter" onclick="filterARs('ready_for_admo',this)">ADMO Ready</div>
+    </div>
+    <div class="ar-list" id="ar-list">
+      <div class="empty-state" style="padding:30px 10px">
+        <div class="icon">📋</div>
+        <h3>No ARs yet</h3>
+        <p style="font-size:.7rem;margin-top:4px">Click "+ New AR" to log an action request</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('detail')" id="tab-detail">📋 AR Detail</div>
+      <div class="tab" onclick="showTab('new')" id="tab-new">+ New AR</div>
+      <div class="tab" onclick="showTab('agent')" id="tab-agent">⚡ Ask Agent</div>
+      <div class="tab" onclick="showTab('reports')" id="tab-reports">📊 Reports</div>
+    </div>
+
+    <!-- DETAIL PANEL -->
+    <div class="panel active" id="panel-detail">
+      <div class="empty-state">
+        <div class="icon">📨</div>
+        <h3>Select an AR</h3>
+        <p>Choose an action request from the list, or create a new one from an ARTS email.</p>
+      </div>
+    </div>
+
+    <!-- NEW AR PANEL -->
+    <div class="panel" id="panel-new">
+      <div class="upload-zone" id="upload-zone">
+        <div style="font-size:1.8rem">📎</div>
+        <p>Drop ARTS email (.txt, .eml) or BN template (.docx) here</p>
+        <span>Agent will auto-extract AR details OR fill your template with AR data</span>
+        <input type="file" id="file-input" accept=".txt,.eml,.pdf,.docx" onchange="handleARUpload(this)">
+      </div>
+      <div id="file-attached-bar" style="display:none" class="file-attached">
+        <span id="file-attached-name">📄 —</span>
+        <div style="display:flex;gap:6px">
+          <span id="file-type-badge" style="font-size:.62rem;color:var(--t3)"></span>
+          <span style="cursor:pointer;color:var(--t3)" onclick="clearUpload()">✕</span>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <h4>📋 AR Details</h4>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">AR Number</label>
+            <input class="form-input" id="ar-number" placeholder="e.g. AR #617" type="text">
+          </div>
+          <div class="form-group">
+            <label class="form-label">AR Type</label>
+            <select class="form-select" id="ar-type" onchange="autoRoute()">
+              <option value="SOLICITED">SOLICITED</option>
+              <option value="BN">Briefing Note (BN)</option>
+              <option value="MEETING_BN">Meeting BN</option>
+              <option value="AFC_CABINET">AFC/CABINET</option>
+              <option value="CORRESPONDENCE">Correspondence</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Due Date</label>
+            <input class="form-input" id="ar-due" type="date">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Reminder Date</label>
+            <input class="form-input" id="ar-reminder" type="date">
+          </div>
+          <div class="form-group">
+            <label class="form-label">ADMO Sender</label>
+            <input class="form-input" id="ar-admo" placeholder="Sender name/office" type="text">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Assign To Team</label>
+            <select class="form-select" id="ar-team" onchange="autoRoute()">
+              <option value="GTM">GTM</option>
+              <option value="ESI">ESI</option>
+              <option value="Both">Both (GTM + ESI)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Director</label>
+            <input class="form-input" id="ar-director" placeholder="Auto-filled by routing rules" type="text">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Manager</label>
+            <input class="form-input" id="ar-manager" placeholder="Manager name" type="text">
+          </div>
+          <div class="form-group full">
+            <label class="form-label">Subject / Description</label>
+            <textarea class="form-textarea" id="ar-subject" placeholder="Full subject line from ARTS..." oninput="autoRoute()"></textarea>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">Raw ARTS Email Text (paste for AI auto-extraction)</label>
+            <textarea class="form-textarea" id="ar-email-text" placeholder="Paste the full ARTS notification email here — agent extracts AR number, subject, due date, type automatically..." style="min-height:90px"></textarea>
+          </div>
+        </div>
+        <div id="routing-suggestion" style="display:none;margin:10px 0;padding:8px 12px;background:rgba(196,160,80,.06);border:1px solid var(--bd2);border-radius:8px;font-size:.7rem;color:var(--gold)">
+          ⚡ Routing suggestion: <span id="routing-suggestion-text"></span>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+          <button class="btn-generate" onclick="createAR()" id="btn-create">✓ Log AR & Generate Drafts</button>
+          <button class="btn-outline" onclick="extractFromEmail()">⚡ Auto-Extract from Email</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AGENT CHAT PANEL -->
+    <div class="panel" id="panel-agent">
+      <div id="agent-messages" style="margin-bottom:16px"></div>
+      <div style="color:var(--t3);font-size:.78rem;text-align:center;padding:20px" id="agent-empty">
+        Ask the agent anything about your ARs — routing decisions, drafts, status summaries, deadline alerts.
+        <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center">
+          <div onclick="agentPrompt(this.dataset.p)" data-p="Which ARs are most overdue and what should I prioritize today?" style="background:var(--sur);border:1px solid var(--bd);border-radius:8px;padding:7px 12px;font-size:.7rem;color:var(--t2);cursor:pointer">📊 Prioritize today's ARs</div>
+          <div onclick="agentPrompt(this.dataset.p)" data-p="Draft a summary email to ADMO listing all ARs currently in progress with their expected return dates" style="background:var(--sur);border:1px solid var(--bd);border-radius:8px;padding:7px 12px;font-size:.7rem;color:var(--t2);cursor:pointer">📧 ADMO status update</div>
+          <div onclick="agentPrompt(this.dataset.p)" data-p="Which ARs are due this week and who owns them?" style="background:var(--sur);border:1px solid var(--bd);border-radius:8px;padding:7px 12px;font-size:.7rem;color:var(--t2);cursor:pointer">📅 Due this week</div>
+          <div onclick="agentPrompt(this.dataset.p)" data-p="List all returned ARs and what revisions are needed" style="background:var(--sur);border:1px solid var(--bd);border-radius:8px;padding:7px 12px;font-size:.7rem;color:var(--t2);cursor:pointer">↩ Returned ARs</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORTS PANEL -->
+    <div class="panel" id="panel-reports">
+      <div style="font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--t1);margin-bottom:6px">Reports & Analytics</div>
+      <div style="font-size:.75rem;color:var(--t3);margin-bottom:20px">Generate AI-powered summaries and reports across your AR portfolio.</div>
+      <div class="report-grid">
+        <div class="report-btn-card" onclick="generateReport('weekly')">
+          <div class="icon">📆</div>
+          <h4>Weekly Status Report</h4>
+          <p>Full summary of all active ARs, overdue items, and completions for the week.</p>
+        </div>
+        <div class="report-btn-card" onclick="generateReport('overdue')">
+          <div class="icon">⚠️</div>
+          <h4>Overdue Escalation Report</h4>
+          <p>All past-due ARs with days overdue, assigned owner, and escalation recommendation.</p>
+        </div>
+        <div class="report-btn-card" onclick="generateReport('admo_pipeline')">
+          <div class="icon">📤</div>
+          <h4>ADMO Pipeline Report</h4>
+          <p>ARs ready for ADMO review or pending final submission — what's in the queue.</p>
+        </div>
+        <div class="report-btn-card" onclick="generateReport('team_workload')">
+          <div class="icon">👥</div>
+          <h4>Team Workload Summary</h4>
+          <p>AR distribution by Director, team, and status. Identify bottlenecks.</p>
+        </div>
+      </div>
+      <div id="report-output-area"></div>
+    </div>
+
+    <!-- INPUT BAR (Agent tab) -->
+    <div class="agent-input-area" id="agent-input-bar">
+      <div class="input-row">
+        <textarea class="input-box" id="agent-input" placeholder="Ask about routing, drafts, deadlines, workload..." rows="1"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAgentMessage()}"></textarea>
+        <button class="btn-send" onclick="sendAgentMessage()" id="agent-send-btn">
+          <svg width="15" height="15" fill="none" stroke="#080c12" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────────
+const SB_URL='https://slnjrwrdbnlybjfaffft.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsbmpyd3JkYm5seWJqZmFmZmZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MzQ1MTMsImV4cCI6MjA4OTAxMDUxM30.JedUCdv0mlvHZ-MlDEnhwLBtMgWaDnbmFfozBHQDQAE';
+
+let arItems=[], currentAR=null, agentMessages=[], userToken=null, userId=null;
+let uploadedFileText=null, uploadedFileName=null, uploadedFileType=null;
+
+// ── ROUTING RULES (localStorage) ────────────────────────────────────
+let routingRules = JSON.parse(localStorage.getItem('mo_routing_rules')||'null') || [
+  {id:1, team:'GTM', director:'', types:'SOLICITED,BN,MEETING_BN', keywords:'generation,transmission,market,capacity,rate,AESO'},
+  {id:2, team:'ESI', director:'', types:'AFC_CABINET,CORRESPONDENCE', keywords:'integration,renewable,storage,microgeneration,ESI'}
+];
+
+// ── REMINDERS (localStorage) ─────────────────────────────────────────
+let reminders = JSON.parse(localStorage.getItem('mo_reminders')||'{}');
+
+// ── AUTH ─────────────────────────────────────────────────────────────
+(function(){try{const s=localStorage.getItem('mo_session');if(s){const p=JSON.parse(s);if(p&&p.access_token&&p.expires_at>Date.now()/1000){userToken=p.access_token;userId=p.user_id;}}}catch(e){}})();
+
+// ── SYSTEM PROMPT ────────────────────────────────────────────────────
+const AR_SYSTEM = `You are an AR Routing Agent for the Government of Alberta, Ministry of Affordability and Utilities, UT Generation, Transmission & Market (GTM) Branch.
+
+CONTEXT:
+- You assist a Branch Manager (UT GTM) who receives Action Requests (ARs) from the Assistant Deputy Minister's Office (ADMO) via the ARTS system
+- The routing chain is: ADMO → UT GTM Branch Manager → GTM or ESI Director → Manager → Policy Analyst/SME → returns same chain → submitted to ADMO
+- Teams: GTM (Generation, Transmission & Market) and ESI (Energy Systems & Integration)
+- AR Types: SOLICITED (policy response), BN (Briefing Note for Minister), Meeting BN, AFC/CABINET, Correspondence
+
+CRITICAL ADMO GATE:
+- You NEVER auto-submit anything to ADMO
+- Only the Branch Manager can trigger ADMO submission
+- When asked to submit/send to ADMO, remind the user they must manually approve the gate
+- The "Ready for ADMO Review" status is an internal flag — it does NOT mean submitted
+
+YOUR TASKS:
+1. Extract AR details from pasted emails (AR number, subject, due date, type, sender)
+2. Draft assignment emails to GTM/ESI Directors (professional GOA tone)
+3. Draft return/submission emails to ADMO
+4. Prioritize ARs by urgency and due date
+5. Generate status summaries and reports
+6. Fill in document templates with AR data
+7. Draft revision cover notes when ARs are returned
+
+EMAIL FORMAT RULES:
+- GOA professional tone — formal but clear
+- Subject line always includes AR number
+- Assignment email: clear ask, due date prominent, specific deliverable
+- Return email: brief cover, confirm completion, attach note
+
+Always flag overdue items and note when an AR type determines a specific deliverable format.`;
+
+// ── TABS ─────────────────────────────────────────────────────────────
+function showTab(tab) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('panel-'+tab).classList.add('active');
+  document.getElementById('agent-input-bar').style.display = tab==='agent'?'block':'none';
+}
+
+// ── LOAD ARs ─────────────────────────────────────────────────────────
+async function loadARs() {
+  try {
+    const r = await fetch(SB_URL+'/rest/v1/ar_items?select=*&order=due_date.asc', {
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+(userToken||SB_KEY)}
+    });
+    if (!r.ok) throw new Error();
+    arItems = await r.json();
+    renderARList(arItems);
+    updateStats();
+  } catch(e) {
+    arItems = getDemoARs();
+    renderARList(arItems);
+    updateStats();
+  }
+  checkReminders();
+}
+
+function getDemoARs() {
+  return [
+    {id:'1',ar_number:'AR #617',subject:'SOLICITED - Draft Response For Minister - MicrOrbit Pause',ar_type:'SOLICITED',due_date:'2025-09-12',status:'in_progress',assigned_to:'Solomon Ezike',team:'GTM',audit_log:[{ts:new Date().toISOString(),msg:'AR created from ARTS email',type:'create'},{ts:new Date().toISOString(),msg:'Assigned to Solomon Ezike (GTM)',type:'assign'}]},
+    {id:'2',ar_number:'AR #217',subject:'SOLICITED - AFC/CABINET – Recommendations to Address the Reg',ar_type:'AFC_CABINET',due_date:'2025-09-26',status:'assigned',assigned_to:'Courtney McQueen',team:'ESI',audit_log:[]},
+    {id:'3',ar_number:'AR #588',subject:'SOLICITED: Draft Response for Minister - Town of Elk Point',ar_type:'SOLICITED',due_date:'2025-09-27',status:'returned_to_you',team:'GTM',revision_notes:'Please expand the economic impact section and add stakeholder consultation summary.',audit_log:[]},
+    {id:'4',ar_number:'AR #3210',subject:'SOLICITED: BN for Minister – CETO and CIB Funding',ar_type:'BN',due_date:'2025-10-12',status:'ready_for_admo',assigned_to:'Betsy Li Alward',team:'GTM',audit_log:[]},
+    {id:'5',ar_number:'AR #3214',subject:'SOLICITED: Meeting BN for Minister - Mtg with Tim Davis CEO',ar_type:'MEETING_BN',due_date:'2025-10-12',status:'in_progress',assigned_to:'Samar Kauser',team:'ESI',audit_log:[]}
+  ];
+}
+
+function renderARList(items) {
+  const list = document.getElementById('ar-list');
+  if (!items.length) {
+    list.innerHTML='<div class="empty-state" style="padding:30px 10px"><div class="icon">📋</div><h3>No ARs yet</h3><p style="font-size:.7rem;margin-top:4px">Click "+ New AR" to log an action request</p></div>';
+    return;
+  }
+  list.innerHTML = items.map(ar => {
+    const due = ar.due_date ? new Date(ar.due_date) : null;
+    const today = new Date();
+    const daysDiff = due ? Math.round((today-due)/(1000*60*60*24)) : 0;
+    const daysClass = daysDiff > 0 ? 'overdue' : daysDiff > -7 ? 'due-soon' : 'ok';
+    const daysLabel = daysDiff > 0 ? `+${daysDiff}d` : daysDiff === 0 ? 'Due today' : `${Math.abs(daysDiff)}d left`;
+    const hasReminder = reminders[ar.id];
+    return `<div class="ar-card ${currentAR?.id===ar.id?'active':''}" onclick="selectAR('${ar.id}')">
+      <div class="ar-card-top">
+        <span class="ar-num">${ar.ar_number}</span>
+        <div style="display:flex;align-items:center;gap:5px">
+          ${hasReminder?'<span style="font-size:.65rem">🔔</span>':''}
+          <span class="ar-days ${daysClass}">${daysLabel}</span>
+        </div>
+      </div>
+      <div class="ar-subject">${ar.subject}</div>
+      <div class="ar-meta">
+        <span class="ar-status status-${ar.status||'received'}">${(ar.status||'received').replace(/_/g,' ')}</span>
+        ${ar.assigned_to?`<span class="ar-owner">${ar.assigned_to}</span>`:''}
+        ${ar.team?`<span class="ar-owner" style="color:var(--gold);opacity:.7">${ar.team}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateStats() {
+  const today = new Date();
+  const overdue = arItems.filter(a => a.due_date && new Date(a.due_date) < today && !['submitted_to_admo','closed'].includes(a.status)).length;
+  const active = arItems.filter(a => ['received','assigned','in_progress','returned_to_you'].includes(a.status)).length;
+  const atAdmo = arItems.filter(a => ['ready_for_admo','submitted_to_admo'].includes(a.status)).length;
+  document.getElementById('stat-overdue').textContent = overdue;
+  document.getElementById('stat-active').textContent = active;
+  document.getElementById('stat-admo').textContent = atAdmo;
+  document.getElementById('stat-total').textContent = arItems.length;
+}
+
+function filterARs(status, el) {
+  document.querySelectorAll('.ar-filter').forEach(f=>f.classList.remove('active'));
+  el.classList.add('active');
+  const filtered = status==='all' ? arItems : arItems.filter(a=>a.status===status);
+  renderARList(filtered);
+}
+
+// ── SELECT AR ─────────────────────────────────────────────────────────
+async function selectAR(id) {
+  currentAR = arItems.find(a=>a.id===id);
+  if (!currentAR) return;
+  renderARList(arItems);
+  showTab('detail');
+  if (!currentAR.draft_assignment_email) {
+    await generateDrafts(currentAR);
+  } else {
+    renderARDetail(currentAR);
+  }
+}
+
+function renderARDetail(ar) {
+  const due = ar.due_date ? new Date(ar.due_date) : null;
+  const today = new Date();
+  const daysDiff = due ? Math.round((today-due)/(1000*60*60*24)) : 0;
+  const statusColors = {received:'#60a5fa',assigned:'#f59e0b',in_progress:'#10b981',returned_to_you:'#c4a050',ready_for_admo:'#9ca3af',submitted_to_admo:'#6b7280',closed:'#4b5563'};
+
+  const chainSteps = [
+    {role:'ADMO',name:'Sender',done:true},
+    {role:'UT GTM',name:'You',active:ar.status==='received',done:ar.status!=='received'},
+    {role:`${ar.team||'GTM'} Director`,name:ar.assigned_to||'—',active:ar.status==='assigned',done:['in_progress','returned_to_you','ready_for_admo','submitted_to_admo'].includes(ar.status)},
+    {role:'Manager',name:ar.manager||'—',active:ar.status==='in_progress'},
+    {role:'Review Gate',name:'ADMO Ready',active:ar.status==='ready_for_admo',gate:true,done:ar.status==='submitted_to_admo'},
+    {role:'ADMO',name:'Submitted',done:ar.status==='submitted_to_admo'},
+  ];
+
+  const auditLog = ar.audit_log || [];
+  const arReminder = reminders[ar.id];
+
+  document.getElementById('panel-detail').innerHTML = `
+    <div class="detail-header">
+      <div class="detail-ar-num">${ar.ar_number} · ${(ar.ar_type||'').replace(/_/g,' ')}</div>
+      <div class="detail-subject">${ar.subject}</div>
+      <div class="detail-chips">
+        <div class="chip">Due: <strong>${ar.due_date||'—'}</strong></div>
+        <div class="chip" style="${daysDiff>0?'color:var(--red)':''}">${daysDiff>0?`⚠ ${daysDiff} days overdue`:`${Math.abs(daysDiff)} days remaining`}</div>
+        <div class="chip">Status: <strong style="color:${statusColors[ar.status]||'var(--gold)'}">${(ar.status||'').replace(/_/g,' ')}</strong></div>
+        ${ar.team?`<div class="chip">Team: <strong>${ar.team}</strong></div>`:''}
+        ${ar.admo_sender?`<div class="chip">From: <strong>${ar.admo_sender}</strong></div>`:''}
+      </div>
+    </div>
+
+    <!-- Routing Chain -->
+    <div class="routing-chain">
+      <h4>🔀 Routing Chain</h4>
+      <div class="chain">
+        ${chainSteps.map((s,i)=>`
+          ${i>0?'<span class="chain-arrow">→</span>':''}
+          <div class="chain-node ${s.active?'active-node':''} ${s.done?'done':''} ${s.gate?'gate':''}">
+            <div class="chain-node-role">${s.role}</div>
+            <div class="chain-node-name" style="font-size:.65rem">${s.name}</div>
+            ${s.done?'<div style="color:var(--green);font-size:.58rem;margin-top:1px">✓</div>':''}
+            ${s.active?'<div style="color:var(--gold);font-size:.58rem;margin-top:1px">● current</div>':''}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- Reminder -->
+    <div class="reminder-card">
+      <h4>🔔 Reminder</h4>
+      <div class="reminder-row">
+        <input class="reminder-input" type="date" id="reminder-date-input" value="${arReminder||''}" placeholder="Set reminder date">
+        <button class="btn-sm" onclick="setReminder('${ar.id}')">Set</button>
+        ${arReminder?`<button class="btn-sm danger" onclick="clearReminder('${ar.id}')">Clear</button>`:''}
+      </div>
+      ${arReminder?`<div style="font-size:.68rem;color:var(--amber);margin-top:6px">🔔 Reminder set for ${arReminder}</div>`:''}
+    </div>
+
+    <!-- Return panel (if returned) -->
+    ${ar.status==='returned_to_you'?`
+    <div class="return-panel">
+      <h4>↩ Returned to You${ar.revision_count?` · Revision #${ar.revision_count}`:''}</h4>
+      <div style="font-size:.7rem;color:var(--t3);margin-bottom:8px">Review the director's notes and generate a revised draft.</div>
+      ${ar.revision_notes?`<div style="font-size:.68rem;color:var(--t3);margin-bottom:6px">Director notes:</div><div class="revision-diff">${ar.revision_notes}</div>`:''}
+      <div class="form-group" style="margin-bottom:10px">
+        <label class="form-label">Director Revision Notes (paste here)</label>
+        <textarea class="form-input" id="revision-notes-input" style="min-height:70px;resize:vertical" placeholder="Paste or type director's revision notes...">${ar.revision_notes||''}</textarea>
+      </div>
+      <button class="btn-generate" style="font-size:.73rem;padding:7px 14px" onclick="generateRevision('${ar.id}')">⚡ Generate Revised Draft</button>
+    </div>`:''}
+
+    <!-- ADMO Gate -->
+    ${['in_progress','returned_to_you','assigned'].includes(ar.status)?`
+    <div class="admo-gate">
+      <h4>🔒 ADMO Submission Gate</h4>
+      <p>Only you can release this AR to ADMO. Clicking "Mark Ready for ADMO" will flag it for your final review — nothing is sent automatically. You must explicitly submit.</p>
+      <button class="btn-sm amber" onclick="updateStatus('${ar.id}','ready_for_admo')">Mark Ready for ADMO Review</button>
+    </div>`:''}
+    ${ar.status==='ready_for_admo'?`
+    <div class="admo-gate ready">
+      <h4>✅ Ready for ADMO Submission</h4>
+      <p>This AR is flagged as ready. Review the return email draft below, then confirm final submission to ADMO. This action is irreversible.</p>
+      <div style="display:flex;gap:8px">
+        <button class="btn-sm" onclick="updateStatus('${ar.id}','in_progress')">← Revoke (needs more work)</button>
+        <button class="btn-sm primary" onclick="confirmSubmitToADMO('${ar.id}')">📤 Confirm Submit to ADMO</button>
+      </div>
+    </div>`:''}
+
+    <!-- Assignment Draft -->
+    ${ar.draft_assignment_email?`
+    <div class="draft-card">
+      <div class="draft-head">
+        <span class="draft-head-title">📧 Assignment Email → ${ar.team||'GTM'} Director</span>
+        <div class="draft-actions">
+          <button class="btn-sm" onclick="copyDraft('assign-draft')">📋 Copy</button>
+          <button class="btn-sm" onclick="downloadDraft('assign-draft','assignment')">⬇ .txt</button>
+          <button class="btn-sm primary" onclick="markAssigned('${ar.id}')">✓ Mark Assigned</button>
+        </div>
+      </div>
+      <textarea class="draft-body" id="assign-draft">${ar.draft_assignment_email}</textarea>
+    </div>`:''}
+
+    <!-- Return Draft -->
+    ${ar.draft_return_email?`
+    <div class="draft-card">
+      <div class="draft-head">
+        <span class="draft-head-title">📤 Return Email → ADMO</span>
+        <div class="draft-actions">
+          <button class="btn-sm" onclick="copyDraft('return-draft')">📋 Copy</button>
+          <button class="btn-sm" onclick="downloadDraft('return-draft','return-to-admo')">⬇ .txt</button>
+        </div>
+      </div>
+      <textarea class="draft-body" id="return-draft">${ar.draft_return_email}</textarea>
+    </div>`:''}
+
+    <!-- Template-filled draft -->
+    ${ar.draft_template_output?`
+    <div class="draft-card">
+      <div class="draft-head">
+        <span class="draft-head-title">📄 Template Output — ${ar.template_name||'Document'}</span>
+        <div class="draft-actions">
+          <button class="btn-sm" onclick="copyDraft('template-draft')">📋 Copy</button>
+          <button class="btn-sm" onclick="downloadDraft('template-draft','template-output')">⬇ .txt</button>
+        </div>
+      </div>
+      <textarea class="draft-body" id="template-draft">${ar.draft_template_output}</textarea>
+    </div>`:''}
+
+    <!-- Actions -->
+    <div class="action-row">
+      <div class="action-row-label">Actions</div>
+      <button class="btn-sm" onclick="regenerateDrafts('${ar.id}')">🔄 Regenerate Drafts</button>
+      ${ar.status!=='in_progress'?`<button class="btn-sm" onclick="updateStatus('${ar.id}','in_progress')">→ Mark In Progress</button>`:''}
+      ${ar.status!=='returned_to_you'?`<button class="btn-sm" onclick="updateStatus('${ar.id}','returned_to_you')">↩ Mark Returned to Me</button>`:''}
+      ${ar.status!=='closed'?`<button class="btn-sm danger" onclick="updateStatus('${ar.id}','closed')">✓ Close AR</button>`:''}
+    </div>
+
+    <!-- Audit Log -->
+    ${auditLog.length?`
+    <div class="audit-section">
+      <h4>📋 Activity Log</h4>
+      ${auditLog.slice().reverse().map(e=>`
+        <div class="audit-item">
+          <div class="audit-dot ${e.type==='create'?'green':e.type==='warning'?'red':'amber'}"></div>
+          <div class="audit-text">${e.msg}</div>
+          <div class="audit-time">${new Date(e.ts).toLocaleString('en-CA',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+        </div>
+      `).join('')}
+    </div>`:''}
+  `;
+}
+
+// ── GENERATE DRAFTS ──────────────────────────────────────────────────
+async function generateDrafts(ar) {
+  document.getElementById('panel-detail').innerHTML = `
+    <div class="thinking-msg">
+      <div class="dots"><span></span><span></span><span></span></div>
+      Generating assignment and return drafts for ${ar.ar_number}...
+    </div>`;
+
+  const today = new Date();
+  const dueDate = ar.due_date ? new Date(ar.due_date) : null;
+  const daysDiff = dueDate ? Math.round((today-dueDate)/(1000*60*60*24)) : 0;
+
+  // If a template was attached, fill it instead
+  let prompt;
+  if (uploadedFileText && uploadedFileType === 'template') {
+    prompt = `Fill in this document template with the AR details below. Replace all placeholders like [AR NUMBER], [DATE], [SUBJECT], [DIRECTOR], [DESCRIPTION] etc. with the actual AR data.\n\nAR DETAILS:\nAR: ${ar.ar_number}\nType: ${ar.ar_type}\nSubject: ${ar.subject}\nDue Date: ${ar.due_date||'Not specified'}\nDirector: ${ar.assigned_to||'[Director Name]'}\nTeam: ${ar.team||'GTM'}\n\nTEMPLATE TO FILL:\n${uploadedFileText.substring(0,5000)}\n\nReturn ONLY the completed document.`;
+    const filled = await callClaude(prompt);
+    ar.draft_template_output = filled;
+    ar.template_name = uploadedFileName;
+    addAuditEntry(ar, `Template "${uploadedFileName}" filled by agent`, 'create');
+    renderARDetail(ar);
+    return;
+  }
+
+  prompt = `Generate TWO professional GOA emails for this Action Request:\n\nAR: ${ar.ar_number}\nType: ${ar.ar_type}\nSubject: ${ar.subject}\nDue Date: ${ar.due_date||'Not specified'}\nDays ${daysDiff>0?'Overdue':'Remaining'}: ${Math.abs(daysDiff)}\nTeam: ${ar.team||'GTM'}\nDirector: ${ar.assigned_to||'[Director Name]'}\nFrom ADMO: ${ar.admo_sender||'ADMO Office'}\n\nEMAIL 1 — Assignment email FROM the UT GTM Branch Manager TO the ${ar.team||'GTM'} Director.\nMust include: AR number in subject, what deliverable is needed, due date (flag urgency if overdue or <7 days), return instructions, GOA professional tone.\n\nEMAIL 2 — Return submission email FROM Branch Manager TO ADMO confirming completion of ${ar.ar_number}.\nMust include: AR number in subject, brief confirmation, reference to attached deliverable.\n\nFormat exactly:\nASSIGNMENT EMAIL:\nSubject: [subject line]\n[full email body]\n\n---RETURN EMAIL---\nSubject: [subject line]\n[full email body]`;
+
+  const draft = await callClaude(prompt);
+  if (!draft) {
+    document.getElementById('panel-detail').innerHTML = '<div style="padding:20px;color:var(--red)">Failed to generate drafts. Check your API connection.</div>';
+    return;
+  }
+
+  const parts = draft.split('---RETURN EMAIL---');
+  ar.draft_assignment_email = parts[0].replace('ASSIGNMENT EMAIL:','').trim();
+  ar.draft_return_email = parts[1]?.trim() || '';
+
+  if (!ar.audit_log) ar.audit_log = [];
+  addAuditEntry(ar, 'Drafts generated by AI agent', 'create');
+  renderARDetail(ar);
+}
+
+// ── REVISION DRAFT ────────────────────────────────────────────────────
+async function generateRevision(id) {
+  const ar = arItems.find(a=>a.id===id);
+  if (!ar) return;
+  const notes = document.getElementById('revision-notes-input')?.value?.trim();
+  if (notes) {
+    ar.revision_notes = notes;
+    ar.revision_count = (ar.revision_count||0) + 1;
+  }
+
+  document.getElementById('panel-detail').innerHTML = `
+    <div class="thinking-msg"><div class="dots"><span></span><span></span><span></span></div>
+    Generating revised draft with director's feedback...</div>`;
+
+  const prompt = `An AR was returned to the Branch Manager with revision notes. Generate a revised assignment email incorporating the feedback.\n\nAR: ${ar.ar_number}\nSubject: ${ar.subject}\nDirector: ${ar.assigned_to||'Director'}\nRevision Notes: ${ar.revision_notes||'No specific notes provided'}\nPrevious Draft:\n${ar.draft_assignment_email||''}\n\nGenerate an updated assignment email that addresses the revision notes professionally. Note the revision round if >1.`;
+
+  const revised = await callClaude(prompt);
+  if (revised) {
+    ar.draft_assignment_email = revised;
+    addAuditEntry(ar, `Revision #${ar.revision_count} draft generated`, 'amber');
+  }
+  renderARDetail(ar);
+}
+
+async function regenerateDrafts(id) {
+  const ar = arItems.find(a=>a.id===id);
+  if (!ar) return;
+  ar.draft_assignment_email = null;
+  ar.draft_return_email = null;
+  await generateDrafts(ar);
+}
+
+// ── CREATE NEW AR ────────────────────────────────────────────────────
+async function createAR() {
+  const num = document.getElementById('ar-number').value.trim();
+  const subj = document.getElementById('ar-subject').value.trim();
+  if (!num || !subj) { showToast('AR number and subject are required', 'warning'); return; }
+
+  const newAR = {
+    id: 'local-'+Date.now(),
+    ar_number: num,
+    subject: subj,
+    ar_type: document.getElementById('ar-type').value,
+    due_date: document.getElementById('ar-due').value,
+    admo_sender: document.getElementById('ar-admo').value,
+    team: document.getElementById('ar-team').value,
+    assigned_to: document.getElementById('ar-director').value,
+    manager: document.getElementById('ar-manager').value,
+    raw_email_text: document.getElementById('ar-email-text').value,
+    status: 'received',
+    user_id: userId,
+    audit_log: [{ts:new Date().toISOString(),msg:`AR created: ${num}`,type:'create'}]
+  };
+
+  // Set reminder if provided
+  const reminderDate = document.getElementById('ar-reminder').value;
+  if (reminderDate) {
+    reminders[newAR.id] = reminderDate;
+    localStorage.setItem('mo_reminders', JSON.stringify(reminders));
+  }
+
+  if (userToken && userId) {
+    try {
+      const r = await fetch(SB_URL+'/rest/v1/ar_items', {
+        method:'POST',
+        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+userToken,'Content-Type':'application/json','Prefer':'return=representation'},
+        body:JSON.stringify({...newAR, id:undefined, audit_log:undefined})
+      });
+      const saved = await r.json();
+      if (saved[0]?.id) newAR.id = saved[0].id;
+    } catch(e) {}
+  }
+
+  arItems.unshift(newAR);
+  updateStats();
+  renderARList(arItems);
+  currentAR = newAR;
+  showTab('detail');
+  await generateDrafts(newAR);
+}
+
+// ── AUTO-ROUTE ────────────────────────────────────────────────────────
+function autoRoute() {
+  const type = document.getElementById('ar-type').value;
+  const team = document.getElementById('ar-team').value;
+  const subj = (document.getElementById('ar-subject').value||'').toLowerCase();
+  const dirEl = document.getElementById('ar-director');
+
+  // Check routing rules
+  const match = routingRules.find(r => {
+    const types = r.types.split(',').map(t=>t.trim());
+    const keywords = r.keywords.split(',').map(k=>k.trim().toLowerCase());
+    const teamMatch = r.team === team || team === 'Both';
+    const typeMatch = types.includes(type);
+    const kwMatch = keywords.some(k=>k&&subj.includes(k));
+    return teamMatch && (typeMatch || kwMatch);
+  });
+
+  if (match && match.director) {
+    const suggestion = document.getElementById('routing-suggestion');
+    const suggText = document.getElementById('routing-suggestion-text');
+    suggestion.style.display = 'block';
+    suggText.textContent = `Route to ${match.director} (${match.team} Director) based on AR type/keywords`;
+    if (!dirEl.value) dirEl.value = match.director;
+  }
+}
+
+// ── AUTO-EXTRACT FROM EMAIL ──────────────────────────────────────────
+async function extractFromEmail() {
+  const emailText = document.getElementById('ar-email-text').value.trim();
+  if (!emailText) { showToast('Paste the ARTS email text first', 'warning'); return; }
+
+  showToast('Extracting AR details...', 'info');
+  const extracted = await callClaude(`Extract the following from this ARTS notification email and return ONLY valid JSON (no markdown):
+{"ar_number":"","subject":"","due_date":"YYYY-MM-DD","ar_type":"SOLICITED|BN|MEETING_BN|AFC_CABINET|CORRESPONDENCE","admo_sender":"","priority":"normal|high|critical"}
+
+Email: ${emailText.substring(0,3000)}`);
+
+  try {
+    const clean = extracted.replace(/```json|```/g,'').trim();
+    const data = JSON.parse(clean);
+    if (data.ar_number) document.getElementById('ar-number').value = data.ar_number;
+    if (data.subject) document.getElementById('ar-subject').value = data.subject;
+    if (data.due_date) document.getElementById('ar-due').value = data.due_date;
+    if (data.ar_type) document.getElementById('ar-type').value = data.ar_type;
+    if (data.admo_sender) document.getElementById('ar-admo').value = data.admo_sender;
+    autoRoute();
+    showToast('✓ AR details extracted successfully', 'success');
+  } catch(e) {
+    showToast('Could not parse — please fill in manually', 'warning');
+  }
+}
+
+function handleARUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  uploadedFileName = file.name;
+
+  // Detect if template or email
+  if (file.name.endsWith('.docx') || file.name.includes('template')) {
+    uploadedFileType = 'template';
+  } else {
+    uploadedFileType = 'email';
+  }
+
+  document.getElementById('file-attached-bar').style.display = 'flex';
+  document.getElementById('file-attached-name').textContent = `📄 ${file.name}`;
+  document.getElementById('file-type-badge').textContent = uploadedFileType === 'template' ? '🗂 Template' : '📧 Email';
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    uploadedFileText = e.target.result.substring(0, 8000);
+    if (uploadedFileType === 'email') {
+      document.getElementById('ar-email-text').value = uploadedFileText;
+      extractFromEmail();
+    } else {
+      showToast(`Template "${file.name}" attached — will be filled when you create the AR`, 'success');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function clearUpload() {
+  uploadedFileText = null;
+  uploadedFileName = null;
+  uploadedFileType = null;
+  document.getElementById('file-attached-bar').style.display = 'none';
+  document.getElementById('file-input').value = '';
+}
+
+// ── STATUS UPDATES ───────────────────────────────────────────────────
+async function updateStatus(id, status) {
+  const ar = arItems.find(a=>a.id===id);
+  if (!ar) return;
+  const oldStatus = ar.status;
+  ar.status = status;
+  addAuditEntry(ar, `Status changed: ${oldStatus.replace(/_/g,' ')} → ${status.replace(/_/g,' ')}`, status==='returned_to_you'?'warning':'amber');
+
+  if (userToken && id.length > 10) {
+    await fetch(SB_URL+'/rest/v1/ar_items?id=eq.'+id, {
+      method:'PATCH',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+userToken,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({status, updated_at:new Date().toISOString()})
+    }).catch(()=>{});
+  }
+  renderARList(arItems);
+  updateStats();
+  renderARDetail(ar);
+  showToast(`Status updated to: ${status.replace(/_/g,' ')}`, 'success');
+}
+
+function markAssigned(id) {
+  updateStatus(id, 'assigned');
+}
+
+function confirmSubmitToADMO(id) {
+  const ar = arItems.find(a=>a.id===id);
+  if (!ar) return;
+  if (!confirm(`Confirm final submission of ${ar.ar_number} to ADMO?\n\nThis action cannot be undone. Make sure the return email draft is ready.`)) return;
+  updateStatus(id, 'submitted_to_admo');
+  addAuditEntry(ar, 'CONFIRMED SUBMISSION TO ADMO by Branch Manager', 'green');
+  showToast('✓ AR marked as submitted to ADMO', 'success');
+}
+
+// ── REMINDER SYSTEM ──────────────────────────────────────────────────
+function setReminder(arId) {
+  const dateVal = document.getElementById('reminder-date-input')?.value;
+  if (!dateVal) { showToast('Select a date first', 'warning'); return; }
+  reminders[arId] = dateVal;
+  localStorage.setItem('mo_reminders', JSON.stringify(reminders));
+  renderARList(arItems);
+  checkReminders();
+  showToast(`🔔 Reminder set for ${dateVal}`, 'success');
+  const ar = arItems.find(a=>a.id===arId);
+  if (ar) renderARDetail(ar);
+}
+
+function clearReminder(arId) {
+  delete reminders[arId];
+  localStorage.setItem('mo_reminders', JSON.stringify(reminders));
+  renderARList(arItems);
+  checkReminders();
+  showToast('Reminder cleared', 'success');
+  const ar = arItems.find(a=>a.id===arId);
+  if (ar) renderARDetail(ar);
+}
+
+function checkReminders() {
+  const today = new Date().toISOString().split('T')[0];
+  const due = Object.entries(reminders).filter(([id, date]) => date <= today);
+  const count = due.length;
+  const badge = document.getElementById('reminder-count');
+  if (count > 0) {
+    badge.style.display = 'flex';
+    badge.textContent = count;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function openRemindersModal() {
+  const list = document.getElementById('reminders-list');
+  const today = new Date().toISOString().split('T')[0];
+  const entries = Object.entries(reminders);
+  if (!entries.length) {
+    list.innerHTML = '<div style="color:var(--t3);font-size:.75rem">No reminders set.</div>';
+  } else {
+    list.innerHTML = entries.map(([id, date]) => {
+      const ar = arItems.find(a=>a.id===id);
+      const isDue = date <= today;
+      return `<div style="background:var(--sur);border:1px solid ${isDue?'rgba(245,158,11,.3)':'var(--bd)'};border-radius:8px;padding:10px 12px;margin-bottom:6px">
+        <div style="font-size:.73rem;color:var(--t1);font-weight:600">${ar?.ar_number||id}: ${ar?.subject?.substring(0,50)||'—'}</div>
+        <div style="font-size:.65rem;color:${isDue?'var(--amber)':'var(--t3)'};margin-top:3px">${isDue?'🔔 Due/overdue':'📅'} ${date}</div>
+        <button class="btn-sm danger" style="margin-top:6px;font-size:.6rem" onclick="clearReminder('${id}');openRemindersModal()">Clear</button>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('reminders-modal').classList.add('open');
+}
+
+// ── ROUTING RULES PANEL ──────────────────────────────────────────────
+function openRoutingRules() {
+  renderRulesTable();
+  document.getElementById('routing-modal').classList.add('open');
+}
+function closeRoutingRules() {
+  document.getElementById('routing-modal').classList.remove('open');
+}
+function renderRulesTable() {
+  const tbody = document.getElementById('rules-body');
+  tbody.innerHTML = routingRules.map((r,i) => `
+    <tr>
+      <td><select class="form-select" style="width:80px" onchange="routingRules[${i}].team=this.value">
+        <option ${r.team==='GTM'?'selected':''}>GTM</option>
+        <option ${r.team==='ESI'?'selected':''}>ESI</option>
+        <option ${r.team==='Both'?'selected':''}>Both</option>
+      </select></td>
+      <td><input type="text" value="${r.director||''}" placeholder="Director name" onchange="routingRules[${i}].director=this.value"></td>
+      <td><input type="text" value="${r.types||''}" placeholder="SOLICITED,BN,..." onchange="routingRules[${i}].types=this.value"></td>
+      <td><input type="text" value="${r.keywords||''}" placeholder="generation,market,..." onchange="routingRules[${i}].keywords=this.value"></td>
+      <td><button class="btn-sm danger" onclick="removeRule(${i})">✕</button></td>
+    </tr>
+  `).join('');
+}
+function addRoutingRule() {
+  routingRules.push({id:Date.now(),team:'GTM',director:'',types:'',keywords:''});
+  renderRulesTable();
+}
+function removeRule(i) {
+  routingRules.splice(i,1);
+  renderRulesTable();
+}
+function saveRoutingRules() {
+  localStorage.setItem('mo_routing_rules', JSON.stringify(routingRules));
+  closeRoutingRules();
+  showToast('✓ Routing rules saved', 'success');
+}
+
+// ── REPORTS ──────────────────────────────────────────────────────────
+async function generateReport(type) {
+  const area = document.getElementById('report-output-area');
+  area.innerHTML = `<div class="thinking-msg"><div class="dots"><span></span><span></span><span></span></div> Generating report...</div>`;
+
+  const arSummary = arItems.map(a => {
+    const due = a.due_date ? new Date(a.due_date) : null;
+    const daysDiff = due ? Math.round((new Date()-due)/(1000*60*60*24)) : null;
+    return `${a.ar_number} | ${a.ar_type} | Due: ${a.due_date||'—'} | ${daysDiff!==null?`${daysDiff>0?'+'+daysDiff+'d overdue':Math.abs(daysDiff)+'d left'}`:'no date'} | Status: ${a.status} | Owner: ${a.assigned_to||'Unassigned'} | Team: ${a.team||'—'}`;
+  }).join('\n');
+
+  const reportTypes = {
+    weekly: `Generate a WEEKLY AR STATUS REPORT for the UT GTM Branch Manager. Today is ${new Date().toLocaleDateString('en-CA')}.\n\nFormat as a professional GOA internal report with these sections:\n1. EXECUTIVE SUMMARY (2-3 sentences)\n2. STATUS OVERVIEW (count by status with brief narrative)\n3. OVERDUE ITEMS (list each with days overdue and recommended action)\n4. DUE THIS WEEK (list each with urgency note)\n5. IN PROGRESS (list with owner and team)\n6. READY FOR ADMO (list ARs flagged for ADMO review)\n7. COMPLETED/SUBMITTED (any closed/submitted this period)\n8. RECOMMENDED ACTIONS (3-5 prioritized actions for the Branch Manager)\n\nAR DATA:\n${arSummary}`,
+    overdue: `Generate an OVERDUE AR ESCALATION REPORT.\n\nFormat with sections:\n1. OVERDUE SUMMARY\n2. CRITICAL (5+ days overdue) — list with escalation recommendation\n3. WARNING (1-4 days overdue) — list with follow-up action\n4. APPROACHING DUE (within 3 days) — list as early warning\n5. ESCALATION RECOMMENDATIONS\n\nAR DATA:\n${arSummary}`,
+    admo_pipeline: `Generate an ADMO PIPELINE REPORT showing what's in queue for ADMO submission.\n\nSections:\n1. PIPELINE OVERVIEW\n2. READY FOR ADMO REVIEW (flagged, needs final approval)\n3. SUBMITTED TO ADMO (completed)\n4. NEAR READY (in progress, expected completion soon)\n5. BLOCKERS (returned ARs that need revision before ADMO)\n\nAR DATA:\n${arSummary}`,
+    team_workload: `Generate a TEAM WORKLOAD SUMMARY report.\n\nSections:\n1. WORKLOAD OVERVIEW\n2. BY TEAM (GTM vs ESI breakdown)\n3. BY DIRECTOR/OWNER (AR counts per person)\n4. BOTTLENECKS (anyone with too many active ARs)\n5. CAPACITY RECOMMENDATIONS\n\nAR DATA:\n${arSummary}`
+  };
+
+  const report = await callClaude(reportTypes[type]);
+  const reportTitles = {weekly:'📆 Weekly Status Report', overdue:'⚠️ Overdue Escalation Report', admo_pipeline:'📤 ADMO Pipeline Report', team_workload:'👥 Team Workload Summary'};
+  const output = report || 'Report generation failed. Check your connection.';
+
+  area.innerHTML = `
+    <div class="report-output">
+      <div class="report-output-head">
+        <span class="report-output-title">${reportTitles[type]||'Report'} · ${new Date().toLocaleDateString('en-CA')}</span>
+        <div style="display:flex;gap:6px">
+          <button class="btn-sm" onclick="copyReportOutput()">📋 Copy</button>
+          <button class="btn-sm" onclick="downloadReport()">⬇ .txt</button>
+        </div>
+      </div>
+      <textarea class="report-body" id="report-output-text">${output}</textarea>
+    </div>`;
+}
+
+function copyReportOutput() {
+  const el = document.getElementById('report-output-text');
+  if (el) navigator.clipboard.writeText(el.value);
+  showToast('✓ Report copied to clipboard', 'success');
+}
+
+function downloadReport() {
+  const el = document.getElementById('report-output-text');
+  if (!el) return;
+  const blob = new Blob([el.value], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `MicrOrbit-AR-Report-${new Date().toISOString().split('T')[0]}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── AGENT CHAT ───────────────────────────────────────────────────────
+function agentPrompt(text) {
+  document.getElementById('agent-input').value = text;
+  sendAgentMessage();
+}
+
+async function sendAgentMessage() {
+  const input = document.getElementById('agent-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  document.getElementById('agent-empty')?.remove();
+  document.getElementById('agent-send-btn').disabled = true;
+
+  appendAgentMsg('user', text);
+
+  const arSummary = arItems.slice(0,15).map(a=>`${a.ar_number}: ${a.subject} | Due: ${a.due_date||'—'} | Status: ${a.status} | Team: ${a.team||'—'} | Owner: ${a.assigned_to||'—'}`).join('\n');
+  const routingCtx = routingRules.map(r=>`${r.team} Director: ${r.director||'Not set'} | Types: ${r.types} | Keywords: ${r.keywords}`).join('\n');
+  agentMessages.push({role:'user', content:`ROUTING RULES:\n${routingCtx}\n\nCURRENT ARs:\n${arSummary}\n\nUser question: ${text}`});
+
+  const tid = 'think-'+Date.now();
+  document.getElementById('agent-messages').insertAdjacentHTML('beforeend',
+    `<div id="${tid}" class="thinking-msg"><div class="dots"><span></span><span></span><span></span></div> Analyzing ARs...</div>`);
+
+  const reply = await callClaude(agentMessages[agentMessages.length-1].content, AR_SYSTEM);
+  document.getElementById(tid)?.remove();
+  agentMessages.push({role:'assistant', content:reply});
+  appendAgentMsg('agent', reply||'No response. Check your connection.');
+  document.getElementById('agent-send-btn').disabled = false;
+}
+
+function appendAgentMsg(role, text) {
+  const msgs = document.getElementById('agent-messages');
+  const div = document.createElement('div');
+  div.style.cssText = `margin-bottom:12px;${role==='user'?'text-align:right':''}`;
+  div.innerHTML = `<div style="display:inline-block;max-width:85%;background:${role==='user'?'rgba(196,160,80,.1)':'var(--sur)'};border:1px solid ${role==='user'?'rgba(196,160,80,.2)':'var(--bd)'};border-radius:${role==='user'?'12px 4px 12px 12px':'4px 12px 12px 12px'};padding:10px 14px;font-size:.78rem;line-height:1.75;color:var(--t1);white-space:pre-wrap">${text}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────────
+function copyDraft(id) {
+  const el = document.getElementById(id);
+  if (el) { navigator.clipboard.writeText(el.value); showToast('✓ Copied to clipboard', 'success'); }
+}
+
+function downloadDraft(id, name) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const blob = new Blob([el.value], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `MicrOrbit-${name}-${new Date().toISOString().split('T')[0]}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function addAuditEntry(ar, msg, type='info') {
+  if (!ar.audit_log) ar.audit_log = [];
+  ar.audit_log.push({ts:new Date().toISOString(), msg, type});
+}
+
+function showToast(msg, type='info') {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(()=>toast.remove(), 3500);
+}
+
+// ── CLAUDE API ───────────────────────────────────────────────────────
+async function callClaude(prompt, systemPrompt) {
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','x-api-key':apiKey},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:2000,
+        system: systemPrompt || AR_SYSTEM,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const d = await r.json();
+    return d.content?.[0]?.text || '';
+  } catch(e) { return ''; }
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────
+loadARs();
+</script>
+</body>
+</html>
