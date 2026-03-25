@@ -1129,11 +1129,18 @@ function launchModule(key){
   if(iframe){
     // Remove onload first to prevent stale event from previous module firing
     iframe.onload=null;
+    iframe.onerror=null;
     iframe.style.opacity='0';
     // Force reload by resetting src before setting new one
     iframe.src='about:blank';
     setTimeout(function(){
       iframe.onload=moduleLoaded;
+      iframe.onerror=function(){
+        var loading=document.getElementById('mod-loading');
+        if(loading)loading.style.display='none';
+        var loadTxt=document.getElementById('mod-load-txt');
+        if(loadTxt){loadTxt.style.color='#f87171';loadTxt.textContent='Failed to load '+key.toUpperCase()+'. Are you running a local server?';}
+      };
       iframe.src='/MicrOrbit/'+key+'.html';
     },50);
   }

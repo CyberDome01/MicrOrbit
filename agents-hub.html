@@ -674,7 +674,7 @@ async function callAI(userMessage, systemPrompt, conversationHistory = []) {
         : [{role:'user', content:userMessage}];
       const r = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
-        headers: {'Content-Type':'application/json','anthropic-version':'2023-06-01'},
+        headers: {'Content-Type':'application/json','anthropic-version':'2023-06-01','x-api-key':apiKey,'anthropic-dangerous-direct-browser-access':'true'},
         body: JSON.stringify({ model, max_tokens: 3000, system: systemPrompt, messages })
       });
       const d = await r.json();

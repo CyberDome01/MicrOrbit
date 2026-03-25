@@ -387,6 +387,8 @@ const _SB_URL='https://slnjrwrdbnlybjfaffft.supabase.co',_SB_KEY='eyJhbGciOiJIUz
 const _sb=supabase.createClient(_SB_URL,_SB_KEY);
 window._sb=_sb;
 (async()=>{
+  // Restore session from mo_session (set by index.html login) if Supabase SDK doesn't have it yet
+  try{var _ms=localStorage.getItem('mo_session');if(_ms){var _mp=JSON.parse(_ms);if(_mp&&_mp.access_token&&_mp.expires_at>Date.now()/1000){await _sb.auth.setSession({access_token:_mp.access_token,refresh_token:_mp.access_token});}}}catch(e){}
   const {data:{session}}=await _sb.auth.getSession();
   if(!session){if(window.parent&&window.parent.closeModule){window.parent.closeModule();if(window.parent.showView)window.parent.showView('login');}else{window.location.href='./';};return;}
   window._moUser=session.user;window._moSession=session;
